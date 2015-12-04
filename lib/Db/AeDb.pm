@@ -23,14 +23,18 @@ sub tester {
 
 sub dbOpen {
 ### stof003 sqlight
-	my $database = $AppEnergie::ae_dbDir . "appenergie.db";
+	my $database = $AppEnergie::ae_db;
 
-	$dbh =
-	  DBI->connect( "dbi:SQLite:dbname=$database", "", "",
-		{ RaiseError => 1, AutoCommit => 1 } )
-	  || die "Could not connect to database: $DBI::errstr";
-	Utili::LogCmdt::logWrite( ( caller(0) )[3],
-		"open db $database. dump from: $AppEnergie::ae_dataStatus" );
+	if ($AppEnergie::ae_dbType eq "sqlite") {
+		$dbh =
+		  DBI->connect( "dbi:SQLite:dbname=$database", "", "",
+			{ RaiseError => 1, AutoCommit => 1 } )
+		  || die "Could not connect to database: $DBI::errstr";
+		Utili::LogCmdt::logWrite( ( caller(0) )[3],
+			"open db $database. dump from: $AppEnergie::ae_dataStatus" );
+		
+	}
+		
 	return;
 
 }

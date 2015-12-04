@@ -201,7 +201,7 @@ sub prodGesamtAlleJahr {
 		
 		#footer
 		print $fh "Summe";
-		my $i = 0;
+		$i = 0;
 		foreach (@anlagenArray) {
 			my $anlageId = $anlagenArray[$i]->{'id'};		
 			print $fh "," . Utili::Numi::formatNum($sumAnlage[$anlageId]);

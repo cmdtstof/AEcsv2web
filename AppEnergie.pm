@@ -16,22 +16,44 @@ use Data::Dumper;
 ##############################################################################
 # Define some constants
 #
+
+#my $ae_case = "appenergie";
+my $ae_case = "test";
+
+
 our $ae_dataStatus 		= "20.03.2015";    	# date of the db dump
 our $ae_writeLog 		= 1;				#1=write logfile and entries
 our $ae_stderrOutput 	= 1;				# 1=logfile output will also be sended to stderr
-our $ae_logDir			= "log/";
-#our $ae_outputDir   	= "output/";   		# outputdir csv, pdf, ... (ohne www!)
-our $ae_outputDir   	= "/home/stof/04_bodies/appenergie/website/www_new/data/";
+our $ae_logDir			= "../log/";
+our $ae_outputDir; # outputdir csv, pdf, ... (ohne www!)
+our $ae_db; # db dir
+our $ae_dbImportDumps; # sto csv for ae_importCsv
+our $ae_rawDataDir;	#sto raw data for $ae_importRaw
+
+if ($ae_case eq "appenergie") {
+	$ae_outputDir   	= "/data/bodies/appenergie/website/www_new/data/";
+	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";		
+	$ae_dbImportDumps	= "/data/bodies/appenergie/daten/db/";
+	$ae_rawDataDir = "/data/bodies/appenergie/daten/raw/";
+	
+} elsif ($ae_case eq "test") {
+	$ae_outputDir   	= "../output/";	
+	$ae_db			= "../testdata/db/test.db";
+	$ae_rawDataDir = "..testdata/raw/";	
+	
+} #else error!
+
+
+
+
+
 
 our $ae_ressDir			= "res/";		#ressourcen files (images, ....)
 our $ae_baseWww			= "www/";		# base dir der www dateien (read and write)
 our $ae_emptyValue		= "&nbsp;";		# empty values will be filled with this
-our $ae_dbDir			= "/home/stof/04_bodies/appenergie/daten/db/sqlite/";		# db dir
-our $ae_dbImportDumps	= "/home/stof/04_bodies/appenergie/daten/db/";
 
-
-our $ae_dbType			= "1";				# 1=sqlite, 
-
+ 
+our $ae_dbType			= "sqlite";				# 1=sqlite,
 
 our $fileDbScvAnlagen	= "ae_anlagen_db_import.csv";
 our $fileDbCsvArbeit	= "ae_arbeit_db_import_"; #ae_arbeit_db_import_furth.csv 
@@ -42,8 +64,12 @@ our $fileAnlageTag		= "dataTag_";
 
 
 my $ae_createDb 		= 0;    #1=create db
-my $ae_prodCsv			= 1;	# 1=create csv files
-my $ae_prodTbl			= 1;	# 1=produce tables
+my $ae_importCsv		= 0;	#1=import raw data from csv (1.version) >>> create db !!!!
+
+my $ae_importRaw		= 1;	#1=import raw data into db
+
+my $ae_prodCsv			= 0;	# 1=create csv files
+my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
 #my $ae_prodPdf			= 0;	# 1=produce pdf
 my $ae_uploadFiles		= 0;	# 1=upload files to fileserver
@@ -89,6 +115,36 @@ if ($ae_createDb) {
 		Db::AeDb::dbClose();
 	
 }
+
+################## import csv (1.version import) ##################
+ if ($ae_importCsv) {
+
+		use Db::AeDb;
+		Db::AeDb::dbOpen();
+	
+		Db::AeDb::insertCsvAnlagenFull();
+		
+		Db::AeDb::insertCsvArbeitFull();
+
+		Db::AeDb::dbClose();
+ 	
+ }
+
+
+################## import from raw files ##################
+if ($ae_importRaw) {
+	
+		use Db::AeDb;
+		Db::AeDb::dbOpen();	
+
+
+
+
+	
+		Db::AeDb::dbClose();	
+	
+}
+
 
 ################## create csv files ##################
 	if ($ae_prodCsv) {
