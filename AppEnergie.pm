@@ -39,7 +39,8 @@ if ($ae_case eq "appenergie") {
 } elsif ($ae_case eq "test") {
 	$ae_outputDir   	= "../output/";	
 	$ae_db			= "../testdata/db/test.db";
-	$ae_rawDataDir = "..testdata/raw/";	
+	$ae_dbImportDumps	= "../testdata/dumps/";
+	$ae_rawDataDir = "../testdata/raw/";	
 	
 } #else error!
 
@@ -56,18 +57,18 @@ our $ae_emptyValue		= "&nbsp;";		# empty values will be filled with this
 our $ae_dbType			= "sqlite";				# 1=sqlite,
 
 our $fileDbScvAnlagen	= "ae_anlagen_db_import.csv";
-our $fileDbCsvArbeit	= "ae_arbeit_db_import_"; #ae_arbeit_db_import_furth.csv 
+our $fileDbCsvArbeit	= "ae_arbeit_db_import_"; #ae_arbeit_db_import_furth.csv
+our $fileRawArbeit		= "ae_raw_"; 
 our $fileGesamt 		= "dataGesamt_";    #dataGesamt_2015.csv > dataGesamt_2015.html
 our $fileAnlageJahr 	= "dataJahr_";	#Jahresproduktion_furth.csv
 our $fileAnlageMonat	= "dataMonat_";
 our $fileAnlageTag		= "dataTag_";
+our $sep_char			= ";";
 
 
-my $ae_createDb 		= 0;    #1=create db
-my $ae_importCsv		= 0;	#1=import raw data from csv (1.version) >>> create db !!!!
-
+my $ae_createDb 		= 1;    #1=create db
+my $ae_importDumps		= 1;	#1=import db dumps from csv (1.version) >>> create db !!!!
 my $ae_importRaw		= 1;	#1=import raw data into db
-
 my $ae_prodCsv			= 0;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
@@ -76,11 +77,6 @@ my $ae_uploadFiles		= 0;	# 1=upload files to fileserver
 
 
 ############# main functions ##################
-
-
-
-
-
 
 
 
@@ -106,25 +102,22 @@ if ($ae_createDb) {
 		Db::AeDb::dbOpen();
 	
 		Db::AeDb::createAnlagen();
-		Db::AeDb::insertCsvAnlagenFull();
 		
 		Db::AeDb::createArbeit();
-		Db::AeDb::insertCsvArbeitFull();
-
 
 		Db::AeDb::dbClose();
 	
 }
 
 ################## import csv (1.version import) ##################
- if ($ae_importCsv) {
+ if ($ae_importDumps) {
 
 		use Db::AeDb;
 		Db::AeDb::dbOpen();
 	
 		Db::AeDb::insertCsvAnlagenFull();
 		
-		Db::AeDb::insertCsvArbeitFull();
+#		Db::AeDb::insertCsvArbeitFull();
 
 		Db::AeDb::dbClose();
  	
@@ -137,7 +130,8 @@ if ($ae_importRaw) {
 		use Db::AeDb;
 		Db::AeDb::dbOpen();	
 
-
+		use Db::ImportRaw;
+		Db::ImportRaw::importRawArbeit();
 
 
 	

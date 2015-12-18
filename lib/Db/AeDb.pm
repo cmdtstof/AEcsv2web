@@ -12,6 +12,7 @@ use XML::Simple qw(:strict);
 use Utili::LogCmdt;
 use Data::Dumper;
 use Utili::FileTools;
+use SQL::Abstract;
 
 my $dbh;
 
@@ -79,8 +80,7 @@ CREATE TABLE arbeit (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`datum`	TEXT,
 	`anlageid`	TEXT,
-	`bArbeit`	INTEGER,
-	`nArbeit`	INTEGER
+	`arbeit`	REAL
 );
 
 	);
@@ -90,8 +90,47 @@ CREATE TABLE arbeit (
 	return;
 }
 
+sub existsAnlageid {
+	my ($anlageid) = @_;
+
+	my $sth = $dbh->prepare('SELECT * FROM anlagen');
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	if ($result) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+sub insertHash {
+	my ($tbl, %fieldvals) = @_;
+	my $sql = SQL::Abstract->new;
+	my($stmt, @bind) = $sql->insert($tbl, \%fieldvals );	
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute(@bind);
+	return;	
+}
+
+sub updateArbeit {
+	my ($id, %fields) = @_;
+	my $stmt = "UPDATE arbeit SET";
+	while ( my ($key, $value) = each(%fields) ) {
+        $stmt .= " $key = '$value',"; 
+    }	
+	chop $stmt;
+	$stmt .= " WHERE id = '$id'";	
+	my	$sth = $dbh->prepare($stmt);
+	$sth->execute();
+	return;
+}
+
+
 sub insertCsvAnlagenFull {
 	my $file = $AppEnergie::ae_dbImportDumps . $AppEnergie::fileDbScvAnlagen;
+	
+	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start import dump\t$file" );
+	
 	open( CSV, $file ) || die "Can't open $file: $!\n";
 	my $sth = $dbh->prepare(
 		"INSERT INTO anlagen (anlage, beschreibung, typ, sort) VALUES (?,?,?,?)"
@@ -112,6 +151,9 @@ sub insertCsvAnlagenFull {
 
 sub insertCsvArbeitFull {
 	my $filePattern = $AppEnergie::fileDbCsvArbeit . "*.csv";
+	
+	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
+	
 	my @files =
 	  Utili::FileTools::getFileListFromPattern( $AppEnergie::ae_dbImportDumps,
 		$filePattern );
@@ -119,7 +161,7 @@ sub insertCsvArbeitFull {
 	foreach my $fileCsv (@files) {
 		open my $fh, '<', $fileCsv
 		  or die "Could not open $fileCsv: $!\n";    # ohne utf-8!!!!!!!
-		Utili::LogCmdt::logWrite( ( caller(0) )[3], "read from csv\t$fileCsv" );
+		Utili::LogCmdt::logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
 
 		my $sth = $dbh->prepare(
 "INSERT INTO arbeit (datum, anlageid, bArbeit, nArbeit) VALUES (?,?,?,?)"
@@ -211,6 +253,28 @@ sub getMonatSum { 	#monatsproduktion nur für einen monat+jahr+anlage
 	$sth->finish;
 	return $sum;
 }
+
+sub getArbeitAsHash {
+	my (%newFields) = @_;
+
+	my $anlageid = $newFields{'anlageid'};
+	my $datum = $newFields{'datum'};
+	my $stmt = "select * from arbeit where datum = '$datum' and anlageid = $anlageid;"; 
+#print "aedb getarbeitashash stmt: $stmt\n";	
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+
+#print "aedb getarbeitashash result";
+#print Dumper \$result;
+
+#TODO check if doppelte einträge!!!
+
+	return $result;
+}
+
+
+
 
 
 sub getAnlageMonatSumNArbeit {    #monatsproduktion anlage
