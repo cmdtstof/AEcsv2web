@@ -53,14 +53,14 @@ sub prodAnlageTag {
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
-		print $fh "date,Brutto Tagesproduktion (kWh)\n";
+		print $fh "date,Tagesproduktion (kWh)\n";
 		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
 
 			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
-				my $datum = @$anlageResult{datum};
-				my $bArbeit = @$anlageResult{bArbeit};
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeit'};
 #print Dumper $anlageResult;
-				print $fh "$datum,$bArbeit\n";
+				print $fh "$datum,$arbeit\n";
 			}
 			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
@@ -128,7 +128,7 @@ sub prodAnlageJahr {
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!		
 		
 		###header
-		print $fh "date,Netto Jahresproduktion (kWh)\n";
+		print $fh "date,Jahresproduktion (kWh)\n";
 
 		
 		my $sthAnlage = Db::AeDb::getAnlageJahrSumNArbeit($anlageId);
@@ -140,7 +140,7 @@ sub prodAnlageJahr {
 					my $sumNarbeit = $anlageResult->{sumNarbeit};
 					print $fh "$date,$sumNarbeit\n";
 				} else {
-					Utili::LogCmdt::logWrite((caller(0))[3], "DATA ERROR anlage=\t$anlageId");
+					Utili::LogCmdt::logWrite((caller(0))[3], "QS ERROR data error anlage=\t$anlageId");
 				}
 				
 			}
@@ -153,7 +153,7 @@ sub prodAnlageJahr {
 # creates csv jahresproduktion ab 2014
 sub prodGesamtAlleJahr {
 	
-	my $jahrBegin = 2014; #	ab 2014 bis today
+	my $jahrBegin = 1994; # bbz herisau
 	my $jahrEnd = Utili::Timi::getYearToday();
 	
 

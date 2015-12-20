@@ -25,19 +25,23 @@ our $ae_dataStatus 		= "20.03.2015";    	# date of the db dump
 our $ae_writeLog 		= 1;				#1=write logfile and entries
 our $ae_stderrOutput 	= 1;				# 1=logfile output will also be sended to stderr
 our $ae_logDir			= "../log/";
-our $ae_outputDir; # outputdir csv, pdf, ... (ohne www!)
+our $ae_logfile = $AppEnergie::ae_logDir . "logfile.csv";
+our $ae_outputDir; # outputdir csv, pdf, ... 
+our $ae_wwwDataDir; #upload dir for data
 our $ae_db; # db dir
 our $ae_dbImportDumps; # sto csv for ae_importCsv
 our $ae_rawDataDir;	#sto raw data for $ae_importRaw
 
 if ($ae_case eq "appenergie") {
 	$ae_outputDir   	= "/data/bodies/appenergie/website/www_new/data/";
+	$ae_wwwDataDir		= 'sysadmin@websrv01.eleph.ch:/var/www/appenergie/data';
 	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";		
 	$ae_dbImportDumps	= "/data/bodies/appenergie/daten/db/";
 	$ae_rawDataDir = "/data/bodies/appenergie/daten/raw/";
 	
 } elsif ($ae_case eq "test") {
-	$ae_outputDir   	= "../output/";	
+	$ae_outputDir   	= "../testdata/output/";
+	$ae_wwwDataDir		= "../testdata/www";	
 	$ae_db			= "../testdata/db/test.db";
 	$ae_dbImportDumps	= "../testdata/dumps/";
 	$ae_rawDataDir = "../testdata/raw/";	
@@ -66,14 +70,15 @@ our $fileAnlageTag		= "dataTag_";
 our $sep_char			= ";";
 
 
-my $ae_createDb 		= 1;    #1=create db
-my $ae_importDumps		= 1;	#1=import db dumps from csv (1.version) >>> create db !!!!
-my $ae_importRaw		= 1;	#1=import raw data into db
+my $ae_createDb 		= 0;    #1=create db
+my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
+
+my $ae_importRaw		= 0;	#1=import raw data into db
 my $ae_prodCsv			= 0;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
 #my $ae_prodPdf			= 0;	# 1=produce pdf
-my $ae_uploadFiles		= 0;	# 1=upload files to fileserver
+my $ae_uploadFiles		= 1;	# 1=upload files to fileserver
 
 
 ############# main functions ##################
@@ -95,8 +100,6 @@ Utili::LogCmdt::logOpen();
 ################## create db ##################
 
 if ($ae_createDb) {
-	
-#TODO only update db
 
 		use Db::AeDb;
 		Db::AeDb::dbOpen();
@@ -109,7 +112,7 @@ if ($ae_createDb) {
 	
 }
 
-################## import csv (1.version import) ##################
+################## import sql dumps ##################
  if ($ae_importDumps) {
 
 		use Db::AeDb;
@@ -132,8 +135,6 @@ if ($ae_importRaw) {
 
 		use Db::ImportRaw;
 		Db::ImportRaw::importRawArbeit();
-
-
 	
 		Db::AeDb::dbClose();	
 	
@@ -147,14 +148,17 @@ if ($ae_importRaw) {
 		Db::AeDb::dbOpen();
 		
 		use Prod::Csv;
+
+#TODO del file before write
+
 		
 #csv für html-tbl
-		Prod::Csv::prodGesamtAlleJahr(); #ok		
+		Prod::Csv::prodGesamtAlleJahr();		
 
 #csv für diagramme		
-#		Prod::Csv::prodAnlageJahr(); #ok
-#		Prod::Csv::prodAnlageMonate(); #ok
-#		Prod::Csv::prodAnlageTag(); #ok
+		Prod::Csv::prodAnlageJahr();
+		Prod::Csv::prodAnlageMonate();
+		Prod::Csv::prodAnlageTag();
 
 
 		Db::AeDb::dbClose();
@@ -169,7 +173,8 @@ if ($ae_importRaw) {
 
 
 		use Prod::Tbls;
-		Prod::Tbls::prodGesamtTbl(); #html tbl gesamtproduktion ab 2014
+		Prod::Tbls::prodGesamtTbl(); #html tbl gesamtproduktion from csv!!!
+#TODO generate html tbl from db		
 		
 	}
 
@@ -192,15 +197,29 @@ if ($ae_importRaw) {
 
 ########### upload files #################
 
+if ($ae_uploadFiles) {
+	use Utili::Rsyncer;
+	
+	Utili::Rsyncer::upload();
+	
+}
 
-
-
-
-########### #################
-
-
+#######################
 
 Utili::LogCmdt::logClose();
+
+
+########### write QS Error  #################
+
+if ($ae_writeLog && $ae_stderrOutput) {
+	
+	Utili::LogCmdt::logShowError();
+	
+}
+
+
+#######################
+
 
 1;
 

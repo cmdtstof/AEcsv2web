@@ -149,7 +149,7 @@ sub insertCsvAnlagenFull {
 #TODO QS check for douple entries!!!!
 
 
-sub insertCsvArbeitFull {
+sub _insertCsvArbeitFull {
 	my $filePattern = $AppEnergie::fileDbCsvArbeit . "*.csv";
 	
 	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
@@ -164,15 +164,15 @@ sub insertCsvArbeitFull {
 		Utili::LogCmdt::logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
 
 		my $sth = $dbh->prepare(
-"INSERT INTO arbeit (datum, anlageid, bArbeit, nArbeit) VALUES (?,?,?,?)"
+"INSERT INTO arbeit (datum, anlageid, bArbeit, arbeit) VALUES (?,?,?,?)"
 		);
 		my $first_line = <$fh>;                      #throw away first line
 		while (<$fh>) {
 			chomp;
-			my ( $id, $datum, $anlageid, $bArbeit, $nArbeit ) = split /,/;
+			my ( $id, $datum, $anlageid, $bArbeit, $arbeit ) = split /,/;
 			$sth->execute(
 				$datum, $anlageid, $bArbeit,
-				$nArbeit
+				$arbeit
 			  )                                      # or die $dbh->errstr;
 		}
 		close $fh;
@@ -220,7 +220,7 @@ sub getAlleJahrMonatAnlageSumNArbeit {    #gesamtproduktion
 	 #select anlageid,  strftime('%Y', datum) as jahr, strftime('%m', datum) as monat, sum(nArbeit) from arbeit group by jahr, monat, anlageid
 	my $sth;
 	$sth = $dbh->prepare(
-'select anlageid, strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(nArbeit) as sumNarbeit from arbeit group by jahr, monat, anlageId'
+'select anlageid, strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(arbeit) as sumNarbeit from arbeit group by jahr, monat, anlageId'
 	);
 	$sth->execute();
 	return $sth;
@@ -233,7 +233,7 @@ sub getAnlageTagBArbeit {    #tagesproduktion brutto anlage
 #select datum, bArbeit from arbeit where anlageId = '5' AND datum >= '2014-10-01' AND datum <= '2014-12-31' order by datum
 	my $sth;
 	$sth = $dbh->prepare(
-'select datum, bArbeit from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
+'select datum, arbeit from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
 	);
 	$sth->execute( $id, $DatumVon, $DatumBis );
 	return $sth;
@@ -245,7 +245,7 @@ sub getMonatSum { 	#monatsproduktion nur für einen monat+jahr+anlage
 	my $sth;
 #	select strftime('%Y', datum) as jahr, strftime('%m', datum) as monat, sum(nArbeit) from arbeit where jahr = '2010' and monat = '01' and anlageId = "2" group by jahr, monat order by jahr, monat
 	$sth = $dbh->prepare(
-'select strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(nArbeit) as sum from arbeit where anlageId = ? and jahr = ? and monat = ? group by jahr, monat'
+'select strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(arbeit) as sum from arbeit where anlageId = ? and jahr = ? and monat = ? group by jahr, monat'
 );
 	$sth->execute($id, $jahr, $monat);
 	my $result = $sth->fetchrow_hashref();
@@ -285,7 +285,7 @@ sub getAnlageMonatSumNArbeit {    #monatsproduktion anlage
 
 	my $sth;
 	$sth = $dbh->prepare(
-'select strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(nArbeit) from arbeit where jahr > "now"-5 and anlageId = ? group by jahr, monat order by jahr, monat'
+'select strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(arbeit) from arbeit where jahr > "now"-5 and anlageId = ? group by jahr, monat order by jahr, monat'
 	);
 	$sth->execute($id);
 	return $sth;
@@ -298,7 +298,7 @@ sub getAnlageJahrSumNArbeit {    ## jahresproduktion anlage
 #select strftime("%Y", datum) as jahr, sum(nArbeit) as sumNarbeit from arbeit where anlageId = "5" group by jahr order by jahr
 	my $sth;
 	$sth = $dbh->prepare(
-'select strftime("%Y", datum) as jahr, sum(nArbeit) as sumNarbeit from arbeit where anlageId = ? group by jahr order by jahr'
+'select strftime("%Y", datum) as jahr, sum(arbeit) as sumNarbeit from arbeit where anlageId = ? group by jahr order by jahr'
 	);
 	$sth->execute($id);
 	return $sth;
@@ -311,7 +311,7 @@ sub _getJahrMonatAnlageSumArbeit {    #not used
 #select anlageid,  strftime('%Y', datum) as jahr, strftime('%m', datum) as monat, sum(nArbeit) from arbeit where jahr = ? group by anlageid, jahr, monat
 	my $sth;
 	$sth = $dbh->prepare(
-'select anlageId,  strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(nArbeit) from arbeit where jahr = ? group by jahr, monat, anlageId'
+'select anlageId,  strftime("%Y", datum) as jahr, strftime("%m", datum) as monat, sum(arbeit) from arbeit where jahr = ? group by jahr, monat, anlageId'
 	);
 	$sth->execute($dJahr);
 	return $sth;

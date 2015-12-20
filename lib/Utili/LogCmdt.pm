@@ -13,6 +13,7 @@ LogCmdt::logWrite((caller(0))[3], "start");
 package Utili::LogCmdt;
 use warnings;
 use strict;
+use Data::Dumper;
 
 
 # __PACKAGE__
@@ -31,7 +32,7 @@ creates log file
 =cut
 	if ($AppEnergie::ae_writeLog) {
 
-	my $logfile = $AppEnergie::ae_logDir . "logfile.csv";
+	my $logfile = $AppEnergie::ae_logfile;
 	open $fhlog, ">:encoding(UTF-8)", $logfile or die "$logfile: $!";
 	Utili::LogCmdt::logWrite((caller(0))[3], "start");
 	}
@@ -70,7 +71,20 @@ writes $logtext into logfile
 	return;
 }
 
+sub logShowError {
+	
+	open($fhlog, $AppEnergie::ae_logfile);
+	my @list=<$fhlog>;
+	my $searchFor="QS ERROR";
+	my @result=grep /$searchFor/,@list;
+	close $fhlog;
+	
+print "***********QS ERRORs************\n";	
+print Dumper @result;	
 
+	
+	return;
+}
 
 1;
 
