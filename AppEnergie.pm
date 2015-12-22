@@ -7,32 +7,6 @@
 # create db, tables in www, charts, pdfs
 #
 #
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
-#
 
 package AppEnergie;
 use warnings;
@@ -81,7 +55,7 @@ our $sep_char			= ";";
 my $ae_createDb 		= 0;    #1=create db
 my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
 
-my $ae_importRaw		= 1;	#1=import raw data into db
+my $ae_importRaw		= 0;	#1=import raw data into db
 my $ae_prodCsv			= 0;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts

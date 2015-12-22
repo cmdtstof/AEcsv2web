@@ -74,15 +74,15 @@ sub createArbeit {
 	my $stmt = qq(DROP TABLE IF EXISTS arbeit );
 	my $rv   = $dbh->do($stmt);
 
-	$stmt = qq(
+# using real makes trouble when comparing!
 
+	$stmt = qq(
 CREATE TABLE arbeit (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`datum`	TEXT,
 	`anlageid`	TEXT,
-	`arbeit`	REAL
+	`arbeit`	TEXT
 );
-
 	);
 	$rv = $dbh->do($stmt);
 

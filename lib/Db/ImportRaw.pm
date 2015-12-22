@@ -85,7 +85,10 @@ sub importRawArbeit {
 #print "importRaw oldFields";
 #print Dumper \%oldFields;
 
-						if ($newFields{'arbeit'} != $oldFields{'arbeit'}) {
+#print "importRaw newfields arbeit = <$newFields{'arbeit'}>\n";
+#print "importRaw oldfields arbeit = <$oldFields{'arbeit'}>\n";
+
+						if ($newFields{'arbeit'} ne $oldFields{'arbeit'}) {
 							my %updateFields;
 							$updateFields{'arbeit'} = $newFields{'arbeit'};
 							Db::AeDb::updateArbeit($oldFields{'id'}, %updateFields);						
