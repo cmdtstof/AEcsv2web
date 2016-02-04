@@ -39,15 +39,17 @@ my $monateTot = @monateDe;
  
 sub prodAnlageTag {
 
-	
 	###zeitspanne ausrechnen
-	my $datumBis = today();
-	my $datumVon = $datumBis - 90;
+#	my $datumBis = today();
+#	my $datumVon = $datumBis - 90;
+	my $datumBis = Db::AeDb::getMaxDatum();
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
 	
 	my $sth = Db::AeDb::getAnlagen();	
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
+
 
 		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTag . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
