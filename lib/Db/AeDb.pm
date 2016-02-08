@@ -201,6 +201,17 @@ sub getAnlagenArrayHash {
 	return @array;	
 }
 
+sub getMaxDatum {
+	my $stmt = qq(
+select max(datum) as maxDatum from arbeit; 	
+	);
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $maxDatum = $result->{'maxDatum'}; 
+	return $maxDatum;
+}
+
 
 sub getAnlagen {
 	my $sth;
@@ -225,6 +236,16 @@ sub getAlleJahrMonatAnlageSumNArbeit {    #gesamtproduktion
 	$sth->execute();
 	return $sth;
 
+}
+
+sub getAnlageTagBArbeitTotal {    #tagesproduktion brutto anlage
+	my ( $id ) = @_;
+	my $stmt = qq(
+select datum, arbeit from arbeit where anlageId = $id order by datum; 	
+	);
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	return $sth;
 }
 
 sub getAnlageTagBArbeit {    #tagesproduktion brutto anlage

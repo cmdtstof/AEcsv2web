@@ -34,6 +34,39 @@ my $monateTot = @monateDe;
 	my $value;
 
 
+###############tagesproduktion analge total 
+#datum, wert
+ 
+sub prodAnlageTot {
+	
+	my $sth = Db::AeDb::getAnlagen();	
+	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
+		my $anlageId = @$resultAnlagen{id};
+		my $anlage = @$resultAnlagen{anlage};
+
+		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTot . "$anlage" . ".csv";
+		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+		
+		###header
+		print $fh "date,Tagesproduktion (kWh)\n";
+		my $sthAnlage = Db::AeDb::getAnlageTagBArbeitTotal($anlageId);
+
+			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeit'};
+#print Dumper $anlageResult;
+				print $fh "$datum,$arbeit\n";
+			}
+			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			close $fh;
+			
+	}
+	return;
+
+
+}
+
+
 ###############tagesproduktion analge der letzten 3 monate 
 #datum, wert
  
