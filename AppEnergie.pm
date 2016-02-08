@@ -49,6 +49,7 @@ our $fileGesamt 		= "dataGesamt_";    #dataGesamt_2015.csv > dataGesamt_2015.htm
 our $fileAnlageJahr 	= "dataJahr_";	#Jahresproduktion_furth.csv
 our $fileAnlageMonat	= "dataMonat_";
 our $fileAnlageTag		= "dataTag_";
+our $fileAnlageTot		= "dataTot_";
 our $sep_char			= ";";
 
 
@@ -168,6 +169,9 @@ if ($ae_importRaw) {
 		use Prod::Csv;
 
 #TODO del file before write
+
+#csv tot / anlage
+		Prod::Csv::prodAnlageTot();
 
 		
 #csv für html-tbl
