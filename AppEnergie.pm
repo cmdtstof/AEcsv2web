@@ -46,6 +46,7 @@ our $fileDbScvAnlagen	= "ae_anlagen_db_import.csv";
 our $fileDbCsvArbeit	= "ae_arbeit_db_import_"; #ae_arbeit_db_import_furth.csv
 our $fileRawArbeit		= "ae_raw_"; 
 our $fileGesamt 		= "dataGesamt_";    #dataGesamt_2015.csv > dataGesamt_2015.html
+our $fileGesamtTotal	= "dataGesamtTotal";	#gesamtproduktion aller analgen pro jahr
 our $fileAnlageJahr 	= "dataJahr_";	#Jahresproduktion_furth.csv
 our $fileAnlageMonat	= "dataMonat_";
 our $fileAnlageTag		= "dataTag_";
@@ -57,7 +58,7 @@ my $ae_createDb 		= 0;    #1=create db
 my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
 
 my $ae_importRaw		= 0;	#1=import raw data into db
-my $ae_prodCsv			= 0;	# 1=create csv files
+my $ae_prodCsv			= 1;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
 #my $ae_prodPdf			= 0;	# 1=produce pdf
@@ -173,7 +174,6 @@ if ($ae_importRaw) {
 #csv tot / anlage
 		Prod::Csv::prodAnlageTot();
 
-		
 #csv für html-tbl
 		Prod::Csv::prodGesamtAlleJahr();		
 
@@ -181,6 +181,10 @@ if ($ae_importRaw) {
 		Prod::Csv::prodAnlageJahr();
 		Prod::Csv::prodAnlageMonate();
 		Prod::Csv::prodAnlageTag();
+
+#csv für diagram gesamtproduktion pro jahr
+		Prod::Csv::prodGesamtJahr();
+
 
 
 		Db::AeDb::dbClose();

@@ -313,6 +313,24 @@ sub getAnlageMonatSumNArbeit {    #monatsproduktion anlage
 
 }
 
+sub getGesamtProJahr {    #gives gesamt arbeit von bis
+	my ($DatumVon, $DatumBis) = @_;
+	my $sumNarbeit;
+#select strftime("%Y", datum) as jahr, sum(arbeit) as summe from arbeit
+# where datum >= '1994-01-01' AND datum <= '1994-12-31' order by jahr >>> ok
+	my $stmt = qq(
+select strftime("%Y", datum) as jahr, sum(arbeit) as summe from arbeit
+ where datum >= '$DatumVon' AND datum <= '$DatumBis' order by jahr 	
+	);
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	$sumNarbeit = $result->{'summe'};
+	return $sumNarbeit; 
+}
+
+
+
 sub getAnlageJahrSumNArbeit {    ## jahresproduktion anlage
 	my ($id) = @_;
 

@@ -151,6 +151,44 @@ sub prodAnlageMonate {
 	return;	
 }
 
+sub prodGesamtJahr {
+	#creates csv gesamtproduktion (alle anlagen=total) für jedes jahr > vergleich jahr zu jahr.
+
+	my $jahrBegin = 1994; # bbz herisau
+	my $jahrEnd = Utili::Timi::getYearToday();
+	
+	my $anlage = "alle"; 
+	$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageJahr . $anlage . ".csv";
+	open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+
+#wie jahresproduktion / anlage 
+# > sub Prod::Csv::prodAnlageJahr();
+# > $fileAnlageJahr
+	
+# file dataJahr_chuerstein.csv
+#date,Jahresproduktion (kWh)
+#2002-12-31,14273	
+
+	#add header
+	print $fh "date,Jahresproduktion (kWh)\n";
+
+	#data	
+	for (my $jahr = $jahrBegin; $jahr <= $jahrEnd; $jahr++) {
+		my $DatumVon = $jahr . "-01-01";
+		my $DatumBis = $jahr . "-12-31";
+
+		my $sumNarbeit = Db::AeDb::getGesamtProJahr($DatumVon, $DatumBis); #		get summe pro jahr
+		print $fh "$DatumBis,$sumNarbeit\n";
+				
+	}
+	Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+	close $fh;	
+	return;
+	
+}
+
+
+
 #jahresproduktion anlage
 sub prodAnlageJahr { 
 	my $sth = Db::AeDb::getAnlagen();
@@ -185,7 +223,11 @@ sub prodAnlageJahr {
 	return;
 }
 
-# creates csv jahresproduktion ab 2014
+
+
+
+
+# creates csv jahresproduktion ab 1994 für jedes jahr
 sub prodGesamtAlleJahr {
 	
 	my $jahrBegin = 1994; # bbz herisau
