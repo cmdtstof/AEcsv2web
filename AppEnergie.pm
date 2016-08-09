@@ -1,11 +1,12 @@
 #!/usr/bin/perl -Ilib 
 
 ################################################
-# Appenzeller Energie
-#  
+# Appenzeller-Energie.ch
+# aeDataProcessor 
 #
-# create db, tables in www, charts, pdfs
+# create db, csv, tables for www from raw leistungsdata
 #
+# uses different profiles (ae_case): test, appenergie (local and rsync to webserver), webserver (direct on webserver)
 #
 
 package AppEnergie;
@@ -21,6 +22,7 @@ use Getopt::Long;
 
 my $ae_case = "test";
 #my $ae_case = "appenergie";
+#my $ae_case = "webserver"; #perl code direct on webserver
 
 our $ae_dataStatus 		= "20.03.2015";    	# date of the db dump
 #TODO set dataStatus from last date in db 
@@ -93,6 +95,15 @@ if ($ae_case eq "appenergie") {
 	$ae_db			= "../testdata/db/test.db";
 	$ae_dbImportDumps	= "../testdata/dumps/";
 	$ae_rawDataDir = "../testdata/raw/";	
+
+} elsif ($ae_case eq "webserver") {
+# codebase (ie): /data/appenergie/scr/scr
+# run: /data/appenergie/scr/scr/appenergie.sh
+	$ae_outputDir   	= "../data/output/";
+	$ae_wwwDataDir		= "/var/www/appenergie/data";	
+	$ae_db			= "../data/db/sqlite/appenergie.db";
+	$ae_dbImportDumps	= "../data/dumps/";
+	$ae_rawDataDir = "../data/raw/";	
 	
 } else {  #else error!
 	die("Error wrong profile\n");
