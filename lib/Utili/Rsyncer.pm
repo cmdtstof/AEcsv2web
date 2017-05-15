@@ -12,7 +12,7 @@ sub upload {
 
 
 ##!/bin/bash
-#rsync -rvzuP --delete /data/bodies/appenergie/website/www_new/* sysadmin@websrv01.eleph.ch:/var/www/appenergie/data
+#rsync -rvzuP --delete /data/bodies/appenergie/website/www_new/* root@vps288538.ovh.net:/var/www/appenergie/data
 
 	my $src = $AppEnergie::ae_outputDir;
 #	my $src = "/data/bodies/appenergie/scr/testdata/output/";

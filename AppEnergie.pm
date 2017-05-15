@@ -89,7 +89,7 @@ GetOptions (
 
 if ($ae_case eq "appenergie") {
 	$ae_outputDir   	= "/data/bodies/appenergie/website/www_new/data/";
-	$ae_wwwDataDir		= 'sysadmin@appenzeller-energie.ch:/var/www/appenergie/data';
+	$ae_wwwDataDir		= 'root@vps288538.ovh.net:/var/www/appenergie/data';
 	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";		
 	$ae_dbImportDumps	= "/data/bodies/appenergie/daten/db/";
 	$ae_rawDataDir = "/data/bodies/appenergie/daten/raw/";
