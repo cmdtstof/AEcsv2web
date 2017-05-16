@@ -6,8 +6,8 @@
 # create db, csv, tables for www from raw leistungsdata
 #
 # uses different profiles (ae_case):
-# - test
-# - appenergie (local processing and rsync to webserver)
+# - dev
+# - prod (local processing and rsync to webserver)
 # - webserver (processing on webserver)
 #
 # info (ät) cmdt.ch
@@ -25,8 +25,8 @@ use Getopt::Long;
 # Define some constants / defaults
 #
 
-my $ae_case = "test";
-#my $ae_case = "appenergie";
+my $ae_case = "dev";
+#my $ae_case = "prod"; # localhost > webserver
 #my $ae_case = "webserver"; #perl code direct on webserver
 
 our $ae_dataStatus 		= "20.03.2015";    	# date of the db dump
@@ -65,11 +65,11 @@ my $ae_createDb 		= 0;    #1=create db
 my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
 
 my $ae_importRaw		= 0;	#1=import raw data into db
-my $ae_prodCsv			= 1;	# 1=create csv files
+my $ae_prodCsv			= 0;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
 #my $ae_prodPdf			= 0;	# 1=produce pdf
-my $ae_uploadFiles		= 0;	# 1=upload files to fileserver
+my $ae_uploadFiles		= 1;	# 1=upload files to fileserver
 
 
 ############# get options ##################
@@ -87,22 +87,24 @@ GetOptions (
 
 ############# get profile data ##################
 
-if ($ae_case eq "appenergie") {
+if ($ae_case eq "prod") {
+# codebase (ie): /data/prod/appenergie/aegrapher/scr/
 	$ae_outputDir   	= "/data/bodies/appenergie/website/www_new/data/";
 	$ae_wwwDataDir		= 'root@vps288538.ovh.net:/var/www/appenergie/data';
-	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";		
-	$ae_dbImportDumps	= "/data/bodies/appenergie/daten/db/";
-	$ae_rawDataDir = "/data/bodies/appenergie/daten/raw/";
+#	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";
+	$ae_db			= "../data/db/sqlite/appenergie.db";
+	$ae_dbImportDumps	= "../data/dumps/";
+	$ae_rawDataDir = "../data/raw/";
 	
-} elsif ($ae_case eq "test") {
-	$ae_outputDir   	= "../testdata/output/";
-	$ae_wwwDataDir		= "../testdata/www";	
-	$ae_db			= "../testdata/db/test.db";
-	$ae_dbImportDumps	= "../testdata/dumps/";
-	$ae_rawDataDir = "../testdata/raw/";	
+} elsif ($ae_case eq "dev") {
+	$ae_outputDir   	= "../data/output/";
+	$ae_wwwDataDir		= "../data/www";	
+	$ae_db			= "../data/db/test.db";
+	$ae_dbImportDumps	= "../data/dumps/";
+	$ae_rawDataDir = "../data/raw/";	
 
 } elsif ($ae_case eq "webserver") {
-# codebase (ie): /data/appenergie/scr/scr
+# codebase (ie): /opt/appenergie/aegrapher/scr/
 # run: /data/appenergie/scr/scr/appenergie.sh
 	$ae_outputDir   	= "../data/output/";
 	$ae_wwwDataDir		= "/var/www/appenergie/data";	
