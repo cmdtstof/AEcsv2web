@@ -25,8 +25,8 @@ use Getopt::Long;
 # Define some constants / defaults
 #
 
-my $ae_case = "test";
-#my $ae_case = "appenergie";
+my $ae_case = "dev";
+#my $ae_case = "prod"; # localhost > webserver
 #my $ae_case = "webserver"; #perl code direct on webserver
 
 our $ae_dataStatus 		= "20.03.2015";    	# date of the db dump
@@ -89,29 +89,31 @@ GetOptions (
 
 ############# get profile data ##################
 
-if ($ae_case eq "appenergie") {
+if ($ae_case eq "prod") {
+# codebase (ie): /data/prod/appenergie/aegrapher/scr/
 	$ae_outputDir   	= "/data/bodies/appenergie/website/www_new/data/";
 	$ae_wwwDataDir		= 'root@vps288538.ovh.net:/var/www/appenergie/data';
-	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";
-	$ae_dbImportDumps	= "/data/bodies/appenergie/daten/db/";
-	$ae_rawDataDir = "/data/bodies/appenergie/daten/raw/";
-
-} elsif ($ae_case eq "test") {
-	$ae_outputDir   	= "../testdata/output/";
-	$ae_wwwDataDir		= "../testdata/www";
-	$ae_db			= "../testdata/db/test.db";
-	$ae_dbImportDumps	= "../testdata/dumps/";
-	$ae_rawDataDir = "../testdata/raw/";
-
-} elsif ($ae_case eq "webserver") {
-# codebase (ie): /data/appenergie/scr/scr
-# run: /data/appenergie/scr/scr/appenergie.sh
-	$ae_outputDir   	= "../data/output/";
-	$ae_wwwDataDir		= "/var/www/appenergie/data";
+#	$ae_db			= "/data/bodies/appenergie/daten/db/sqlite/appenergie.db";
 	$ae_db			= "../data/db/sqlite/appenergie.db";
 	$ae_dbImportDumps	= "../data/dumps/";
 	$ae_rawDataDir = "../data/raw/";
+	
+} elsif ($ae_case eq "dev") {
+	$ae_outputDir   	= "../data/output/";
+	$ae_wwwDataDir		= "../data/www";	
+	$ae_db			= "../data/db/test.db";
+	$ae_dbImportDumps	= "../data/dumps/";
+	$ae_rawDataDir = "../data/raw/";	
 
+} elsif ($ae_case eq "webserver") {
+# codebase (ie): /opt/appenergie/aegrapher/scr/
+# run: /data/appenergie/scr/scr/appenergie.sh
+	$ae_outputDir   	= "../data/output/";
+	$ae_wwwDataDir		= "/var/www/appenergie/data";	
+	$ae_db			= "../data/db/sqlite/appenergie.db";
+	$ae_dbImportDumps	= "../data/dumps/";
+	$ae_rawDataDir = "../data/raw/";	
+	
 } else {  #else error!
 	die("Error wrong profile\n");
 }

@@ -1,8 +1,8 @@
 #!/bin/bash
 # start script for AppEnergie case appenergie
 
-perl /data/bodies/appenergie/scr/scr/AppEnergie.pm \
---profile appenergie \
+perl /data/appenergie/scr/scr/AppEnergie.pm \
+--profile webserver \
 --importraw \
 --csv \
 --tbl \
