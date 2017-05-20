@@ -21,7 +21,7 @@ use Utili::LogCmdt;
 		host	=> "emoncms.rosslan.home", #localhost
 		port	=> "3306",
 		user	=> "emoncms",
-		pwd		=> "emoncms",
+		pwd		=> "emoncms", #TODO from not-versioned(!) config file!!!!
 	};
 
 

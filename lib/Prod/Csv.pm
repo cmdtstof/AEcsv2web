@@ -65,11 +65,52 @@ sub prodAnlageTot {
 
 
 }
+###############tagesproduktion anlage der letzten 3 monate for emoncms data compare 
+#datum, wert
+sub prodAnlageTagEmon{
+	###zeitspanne ausrechnen
+#	my $datumBis = today();
+#	my $datumVon = $datumBis - 90;
+	my $datumBis = Db::AeDb::getMaxDatum();
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
+	
+	my $sth = Db::AeDb::getAnlagen();	
+	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
+		my $anlageId = @$resultAnlagen{id};
+		my $anlage = @$resultAnlagen{anlage};
+
+		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTagEmon . "$anlage" . ".csv";
+		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+		
+		###header
+		print $fh "date,Tagesproduktion (kWh) (emoncms!)\n";
+		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
+
+			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeitemon'};
+				
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
+				
+#print Dumper $anlageResult;
+				print $fh "$datum,$arbeit\n";
+			}
+			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			close $fh;
+			
+	}
+	return;
+	
+	
+	
+}
+
 
 
 ###############tagesproduktion analge der letzten 3 monate 
 #datum, wert
- 
 sub prodAnlageTag {
 
 	###zeitspanne ausrechnen
@@ -82,7 +123,6 @@ sub prodAnlageTag {
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
-
 
 		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTag . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!

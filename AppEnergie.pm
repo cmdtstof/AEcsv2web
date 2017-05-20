@@ -59,18 +59,18 @@ our $fileGesamtTotal	= "dataGesamtTotal";	#gesamtproduktion aller analgen pro ja
 our $fileAnlageJahr 	= "dataJahr_";	#Jahresproduktion_furth.csv
 our $fileAnlageMonat	= "dataMonat_";
 our $fileAnlageTag		= "dataTag_";
+our $fileAnlageTagEmon	= "dataTagEmon_"; # for arbeitemon compare test phase
 our $fileAnlageTot		= "dataTot_";
 our $sep_char			= ";";
 
-#>>>> emoncms db configs in Db::EmonDb !!!
 
 my $ae_createDb 		= 0;    #1=create db
 my $ae_migrateDb		= 0;	#1=migrate db
 my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
 
 my $ae_importRaw		= 0;	#1=import raw data into db
-my $ae_importEmon   	= 1;  	#1=import from emoncms db
-my $ae_prodCsv			= 0;	# 1=create csv files
+my $ae_importEmon   	= 0;  	#1=import from emoncms db
+my $ae_prodCsv			= 1;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
 #my $ae_prodPdf			= 0;	# 1=produce pdf
@@ -212,6 +212,7 @@ if ($ae_importEmon) {
 		Prod::Csv::prodAnlageJahr();
 		Prod::Csv::prodAnlageMonate();
 		Prod::Csv::prodAnlageTag();
+		Prod::Csv::prodAnlageTagEmon(); #TODO remove after test phase
 
 #csv für diagram gesamtproduktion pro jahr
 		Prod::Csv::prodGesamtJahr();
