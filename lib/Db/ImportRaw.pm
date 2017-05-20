@@ -72,10 +72,6 @@ sub importRawArbeit {
 #print "importRaw newFields $i";
 #print Dumper \%newFields;
 
-					
-
-
-
 					my %oldFields;
 					my $oldFieldsRef = Db::AeDb::getArbeitAsHash(%newFields);
 					

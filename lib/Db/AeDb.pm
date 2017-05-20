@@ -23,7 +23,7 @@ sub tester {
 }
 
 sub dbOpen {
-### stof003 sqlight
+### sqlight
 	my $database = $AppEnergie::ae_db;
 
 	if ($AppEnergie::ae_dbType eq "sqlite") {
@@ -81,7 +81,8 @@ CREATE TABLE arbeit (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`datum`	TEXT,
 	`anlageid`	TEXT,
-	`arbeit`	TEXT
+	`arbeit`	TEXT,
+	`arbeitemon`	TEXT
 );
 	);
 	$rv = $dbh->do($stmt);
@@ -89,6 +90,22 @@ CREATE TABLE arbeit (
 	Utili::LogCmdt::logWrite( ( caller(0) )[3], "create tbl arbeit" );
 	return;
 }
+
+sub migrateDb {
+	
+	#v0.4 tbl arbeit + arbeitemon(text)
+Utili::LogCmdt::logWrite( ( caller(0) )[3], "migrate db to v0.4" );	
+	
+	my $stmt = qq(
+alter table arbeit
+  add arbeitemon TEXT;
+	);
+	my $rv = $dbh->do($stmt);	
+	
+	return;
+}
+
+
 
 sub existsAnlageid {
 	my ($anlageid) = @_;
@@ -212,6 +229,19 @@ select max(datum) as maxDatum from arbeit;
 	return $maxDatum;
 }
 
+#gives back last datum with a value for a given anlageid
+sub getMaxEmonDatumForAnlage {
+	my ($anlageid) = @_;
+	my $stmt = qq(
+SELECT max(datum) as maxDatum from arbeit where arbeitemon is not null AND anlageid=$anlageid; 	
+	);
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $maxDatum = $result->{'maxDatum'}; 
+	return $maxDatum;
+}
+
 
 sub getAnlagen {
 	my $sth;
@@ -220,12 +250,33 @@ sub getAnlagen {
 	return $sth;
 }
 
+sub getAnlage {
+	my ($anlage) = @_;
+	my $sth = $dbh->prepare("SELECT * FROM anlagen where anlage = '$anlage'");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	return $result;	
+}
+
+
+
 sub getDataSetArbeit {
 	my $sth;
 	$sth = $dbh->prepare('SELECT * FROM arbeit');
 	$sth->execute();
 	return $sth;
 }
+
+#gives for anlageid arbeit (kwh) per day
+sub getArbeitTag{
+	my ($anlageid, $datum) = @_;
+	my $sth = $dbh->prepare("SELECT * FROM arbeit where anlageid = $anlageid AND datum = '$datum'");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref(); #TODO check if double
+	my $arbeit = $result->{arbeit};
+	return $arbeit;
+}
+
 
 sub getAlleJahrMonatAnlageSumNArbeit {    #gesamtproduktion
 	 #select anlageid,  strftime('%Y', datum) as jahr, strftime('%m', datum) as monat, sum(nArbeit) from arbeit group by jahr, monat, anlageid
@@ -275,6 +326,8 @@ sub getMonatSum { 	#monatsproduktion nur für einen monat+jahr+anlage
 	return $sum;
 }
 
+
+#$result(hashref(id, datum, anlageid, arbeit, arbeitemon)) = getArbeitAsHash($hash(anlageid, datum)) 
 sub getArbeitAsHash {
 	my (%newFields) = @_;
 

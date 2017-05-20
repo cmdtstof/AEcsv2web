@@ -37,7 +37,7 @@ sub tester {
 }
 
 sub dbOpen {
-### stof006 virtualbox
+### stof006 virtualbox mysql
 
 # grant any host!!!
 #mysql -h emoncms -u emoncms -p
@@ -49,7 +49,7 @@ sub dbOpen {
 		{ RaiseError => 1, AutoCommit => 0 } )
 	  || die "Could not connect to database: $DBI::errstr";
 	
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "open db" );
+	Utili::LogCmdt::logWrite( ( caller(0) )[3], "open db\t$config->{host} $config->{database}" );
 	return;
 }
 
@@ -58,6 +58,24 @@ sub dbClose {
 	Utili::LogCmdt::logWrite( ( caller(0) )[3], "close db" );
 	return;
 
+}
+
+sub getMinTimeForFeed {
+	my ($table) = @_;
+	my $sth = $dbh->prepare("SELECT min(time) as time FROM $table");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $time = $result->{'time'}; 	
+	return $time; #epoch
+}
+
+sub getMaxTimeForFeed {
+	my ($table) = @_;
+	my $sth = $dbh->prepare("SELECT max(time) as time FROM $table");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $time = $result->{'time'}; 	
+	return $time; #epoch	
 }
 
 

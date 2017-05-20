@@ -1,6 +1,20 @@
 #!/usr/bin/perl
-# DBI functions
+# import data from emoncms power/kraft (kW) feed and produce work/arbeit (kwday) for adding in AeDb
+
+
+# TODO arbeitemon inserted into tbl "arbeit", field "arbeitemon". > after test phase write into field "arbeit" 
 #
+
+#TODO check if emoncms time is gm/localtime???
+#TODO check with schaltjahr 29.2.2016 ???
+#TODO sub importFull ?????? for update values in emoncms db AND just in case something went wrong ????
+
+#TODO wie sollte das ablaufen?
+#cronjob täglich 
+#- daten aus emoncms auslesen (vom jüngsten datum an) und in sqlight schreiben
+#- csv erstellen und uploaden
+#cronjob monatlich: alle daten erstellen (als security)
+
 
 package Db::ImportEmon;
 
@@ -10,12 +24,13 @@ use strict;
 use Db::EmonDb;
 use Utili::LogCmdt;
 use Utili::Dbgcmdt;
-use Utili::Datum;
-use Time::Local;
+use DateTime;
 
-#TODO check if emoncms time is gm/localtime???
-#TODO check with schaltjahr 29.2.2016 ???
-
+my %feeds = (
+	furth => {
+		feed      => "feed_19",
+    },
+ );
 
 
 sub tester {
@@ -23,150 +38,152 @@ sub tester {
 #	feed19tester(); #works
 	
 	
-### getworkperday
-	my $time = "20161028";	
-	my $work = getWorkPerDay("feed_19", $time);
-#	print "$time = $work (kWh)\n"; 
-	
-	
-	
-}
+### getworkperday >> works
+#	my $day = DateTime->new(year => 2016, month => 7, day => 28 );  
+#	my $work = getWorkPerDay("feed_19", $day);
+#Utili::Dbgcmdt::prnwo("$day $work");
 
-=pod
-for all emonanlagen
+#	compareData();
 
-	if emondb has newer date value then AeDB
-		add emondb in AeDB  
-
-endfor emonanlagen
-write csv
-upload csv
-
-
-=cut
-sub main {
-	
+	importNotImported();
 	
 	
 }
 
-# gives from feed the kwh for a day YYYYMMDD back
+# imports all "feeds" into tbl "arbeit" 
+sub importNotImported {
+
+	foreach my $anlage ( keys %feeds ) {
+
+		my $result	 = Db::AeDb::getAnlage($anlage);
+		my $an_id	 = $result->{'id'};
+		my $an_anlage = $result->{'anlage'};
+		my $feed	 = $feeds{$anlage}{feed};
+		
+		my $importFrom;
+		my $datum = Db::AeDb::getMaxEmonDatumForAnlage($an_id); 		#getmax date in AeDb for id (2007-12-13)
+		if (! defined $datum) {
+			$datum = Db::EmonDb::getMinTimeForFeed($feed); #get min time from emondb (1468312359) >>> load all data
+			$importFrom = DateTime->from_epoch( epoch => $datum );
+		} else {
+			$importFrom = DateTime->new(year => substr($datum,0,4), month => substr($datum,5,2), day => substr($datum,8,2) );
+		}
+		$importFrom->add(days => 1); # next (full) day
+		
+		$datum = Db::EmonDb::getMaxTimeForFeed($feed);
+		my $importTill = DateTime->from_epoch( epoch => $datum );
+		$importTill->subtract(days => 1); # last full day
+Utili::LogCmdt::logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=$importFrom till=$importTill" );
+		while ($importFrom < $importTill) { 
+			my %newFields = (
+				anlageid	=> $an_id,
+				datum		=> $importFrom->strftime("%Y-%m-%d"), #2017-05-19
+				arbeitemon	=> getWorkPerDay($feed, $importFrom),
+			);
+
+#$newFields{'datum'} = "2018-01-01"; #TODO for test, remove after!!! 	
+			my $oldFields = Db::AeDb::getArbeitAsHash(%newFields); #$result(hashref(id, datum, anlageid, arbeit, arbeitemon)) = getArbeitAsHash($hash(anlageid, datum))
+			if ($oldFields) { #row exist > update
+#Utili::Dbgcmdt::dumper(\$oldFields);
+				my %updateFields = (
+					arbeitemon	=> $newFields{'arbeitemon'},
+				);
+				Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
+				Utili::LogCmdt::logWrite( ( caller(0) )[3], "updated\tid=$oldFields->{'id'}\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$updateFields{'arbeitemon'}" );
+			} else { #row not exist > insert
+				Db::AeDb::insertHash('arbeit', %newFields);
+				Utili::LogCmdt::logWrite( ( caller(0) )[3], "inserted\t\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$newFields{'arbeitemon'}" );
+			}
+			
+			$importFrom->add(days => 1);
+		}
+	} #foreach anlage
+	return;
+}
+
+
+#compares existing data with emoncms data (test)
+sub compareData{
+
+	my $compareFrom = DateTime->new(year => 2016, month => 07, day => 13 ); 
+	my $compareTill = DateTime->new(year => 2017, month => 02, day => 14 );
+#	my $compareTill = DateTime->new(year => 2016, month => 07, day => 21 );
+
+	my @array1;
+	while ($compareFrom <= $compareTill) {
+Utili::Dbgcmdt::prnwo($compareFrom);
+
+		my %hash1;
+		$hash1{'date'} = $compareFrom->strftime("%Y%m%d");
+
+#get emon data for day
+		$hash1{'emon'} = getWorkPerDay("feed_19", $compareFrom); # feed-table, day as DateTime object
+
+#get existing arbeit for day
+		$hash1{'arbeit'} = Db::AeDb::getArbeitTag(4, $compareFrom->strftime("%Y-%m-%d"));
+
+#Utili::Dbgcmdt::dumper(\%hash1);
+
+		push ( @array1, \%hash1);
+		$compareFrom->add(days => 1);
+	}
+
+#Utili::Dbgcmdt::dumper(\@array1);
+
+#print Dumper $array1[0];
+
+	my $outfile = $AppEnergie::ae_outputDir . "compareData.csv"; 
+	open my $fh, "> $outfile" or die "problem opening $outfile\n"; #write new
+	for (my $i = 0; $i < @array1; $i++) {
+		print $fh "$array1[$i]->{'date'}\t$array1[$i]{'arbeit'}\t$array1[$i]{'emon'}\n"; 
+	}
+	close $fh;
+
+
+	
+	return;
+}
+
+
+
+# gives back from feed the kwday for YYYYMMDD
 sub getWorkPerDay {
-	my ($feed, $workday) = @_;
-
-	my $year = substr($workday, 0, 4);
-	my $mon = substr($workday, 4, 2);
-	my $mday = substr($workday, 6, 2);
+	my ($feed, $dt) = @_; # feed-table, day as DateTime object
 	
-	$mon -= 1;
-	my $timeFrom = timelocal(0,0,0,$mday,$mon,$year);
-	my $timeTill = timelocal(59,59,23,$mday,$mon,$year);
+	my $timeFrom = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>0,minute=>0,second=>0);
+	my $timeTill = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>23,minute=>59,second=>59);
+#Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
 
-Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
-
-	my $kwSecSum = 0;
+	my $workSecSum = 0; #kWsec 
 	my $secSum = 0;
-	my $oldTime = 0;
-	my $oldData = 0;
+	my $timeLast = $timeFrom->epoch();
+	my $dataLast = 0;
 	
-	my $querystr = "select * from feed_19 where time >= $timeFrom AND time <= $timeTill;";
-Utili::Dbgcmdt::prnwo($querystr);	
+	my $querystr = "select * from $feed where time >= ". $timeFrom->epoch() . " AND time <= " . $timeTill->epoch() . ";";
+#Utili::Dbgcmdt::prnwo($querystr);
 	
 	my $sth = Db::EmonDb::getQuerystrSth($querystr);	
 	while (my $result = $sth->fetchrow_hashref() ) {
+##Utili::Dbgcmdt::dumper($result);
 
-#Utili::Dbgcmdt::dumper($result);
-
-		my $time = $result->{'time'};
-		my $data = $result->{'data'};
-		
-		my $diffTime = $time - $oldTime;
-		my $diffData = ($oldData + $data) / 2; #mittelwert ???
-		
-		$kwSecSum += $diffTime * $diffData;
-		$secSum += $diffTime; #??? gibt das 24*3600 = 86400 ???
-		
-printTime($oldTime, $time, $data, $secSum, $kwSecSum);
-		
-
-		$oldTime = $time;
-		$oldData = $data;
+		my $timeNow = $result->{'time'}; #posix
+		my $dataNow = $result->{'data'};
+		my $timeDif = $timeNow - $timeLast;
+##		my $dataAvg = ($dataNow + $dataLast) / 2; #mittelwert ??? day=20161028 w avg= 44.2528587962963, w/o avg=44.2580324074074
+		my $dataAvg = $dataNow;
+		$workSecSum += ($timeDif * $dataAvg);
+		$secSum += $timeDif; 
+		$timeLast = $timeNow;
+		$dataLast = $dataNow;
 	
 	}
 
-	my $kwhSum = $kwSecSum / 86400;
-print "day=$workday kWh=$kwhSum\n";
+	$workSecSum += ((86400 - $secSum) * $dataLast ); # add for remaing sec 
+	my $workdaySum = $workSecSum / 86400;
 
-	return;
+	return ($workdaySum);
 
 }
-
-
-
-
-
-sub feed19tester {
-	
-# row1 = 1468312359
-#perl -le 'print scalar localtime 1468312359;' >>>Tue Jul 12 10:32:39 2016
-# row39767 = 1487127585
-#perl -le 'print scalar localtime 1487127585;' >>>Wed Feb 15 03:59:45 2017
-
-	
-print "oldTime\tTime\tdiff\tdata\n";
-
-	my $oldTime = 0;
-	my $oldData = 0;
-
-	my $sth = Db::EmonDb::getTableSth("feed_19");			
-	while (my $result = $sth->fetchrow_hashref() ) {
-
-#Utili::Dbgcmdt::dumper($result);
-#  'data' => '47',
-#          'time' => 1470877385
-
-		my $time = $result->{'time'};
-		my $data = $result->{'data'};
-printTime($oldTime, $time, $data);
-		$oldTime = $time;
-		$oldData = $data;
-	}
-
-	return;		
-}
-
-
-sub printTime{
-	my ($oldTime, $time, $data, $secSum, $kwSecSum) = @_;	
-
-		my $oldTimeHuman = Utili::Datum::getPosix2HumanFormStr($oldTime);
-		my $timeHuman = Utili::Datum::getPosix2HumanFormStr($time);
-		my $diff = $time - $oldTime;
-		my $str = "$oldTime\t$oldTimeHuman\t$time\t$timeHuman\t$diff\t$data\t$secSum\t$kwSecSum\n";
-		print $str; 
-
-	return;	
-	
-}
-
-
-
-sub getFeeds{
-	my $sth = Db::EmonDb::getFeedsSth();	
-	while (my $result = $sth->fetchrow_hashref() ) {
-
-Utili::Dbgcmdt::dumper($result);
-	
-	}
-	return;
-	
-}
-
-
-
-
-
-
 
 
 1;

@@ -13,11 +13,13 @@
 # info (ät) cmdt.ch
 #
 
+#TODO sensible data in config file and not versioned
+
 
 package AppEnergie;
 use warnings;
 use strict;
-use Data::Dumper;
+#use Data::Dumper;
 
 use Getopt::Long;
 
@@ -63,10 +65,11 @@ our $sep_char			= ";";
 #>>>> emoncms db configs in Db::EmonDb !!!
 
 my $ae_createDb 		= 0;    #1=create db
+my $ae_migrateDb		= 0;	#1=migrate db
 my $ae_importDumps		= 0;	#1=import db dumps from csv (1.version) >>> create db !!!!
 
 my $ae_importRaw		= 0;	#1=import raw data into db
-my $ae_importEmon   	= 1;  #1=import from emoncms db
+my $ae_importEmon   	= 1;  	#1=import from emoncms db
 my $ae_prodCsv			= 0;	# 1=create csv files
 my $ae_prodTbl			= 0;	# 1=produce tables
 #my $ae_prodCharts		= 0;	# 1=produce charts
@@ -79,8 +82,10 @@ GetOptions (
 	"profile|p=s" => \$ae_case,
 	"verbose!" => \$ae_stderrOutput,
 	"createdb" => \$ae_createDb,
+	"migratedb"	=> \$ae_migrateDb,
 	"importdumps" => \$ae_importDumps,
 	"importraw" => \$ae_importRaw,
+	"importemon"	=> \$ae_importEmon,
 	"csv" => \$ae_prodCsv,
 	"tbl" => \$ae_prodTbl,
 	"upload" => \$ae_uploadFiles
@@ -140,61 +145,52 @@ Utili::LogCmdt::logOpen();
 ################## create db ##################
 
 if ($ae_createDb) {
-
 		use Db::AeDb;
 		Db::AeDb::dbOpen();
-
 		Db::AeDb::createAnlagen();
-
 		Db::AeDb::createArbeit();
-
 		Db::AeDb::dbClose();
+}
 
+################## migratge db ##################
+if ($ae_migrateDb) {
+	use Db::AeDb;
+	Db::AeDb::dbOpen();	
+	Db::AeDb::migrateDb();
+	Db::AeDb::dbClose();	
 }
 
 ################## import sql dumps ##################
  if ($ae_importDumps) {
-
 		use Db::AeDb;
 		Db::AeDb::dbOpen();
-
 		Db::AeDb::insertCsvAnlagenFull();
-
 #		Db::AeDb::insertCsvArbeitFull();
-
 		Db::AeDb::dbClose();
-
  }
 
 
 ################## import from raw files ##################
 if ($ae_importRaw) {
-
 		use Db::AeDb;
 		Db::AeDb::dbOpen();
-
 		use Db::ImportRaw;
 		Db::ImportRaw::importRawArbeit();
-
 		Db::AeDb::dbClose();
 
 }
 
 ################## import from emoncms ##################
 if ($ae_importEmon) {
-
+		use Db::AeDb;
+		Db::AeDb::dbOpen();
 		use Db::EmonDb;
 		Db::EmonDb::dbOpen();
-
 		use Db::ImportEmon;
-		Db::ImportEmon::tester();
-
+		Db::ImportEmon::importNotImported();
 		Db::EmonDb::dbClose();
-
+		Db::AeDb::dbClose();
 }
-
-
-
 
 ################## create csv files ##################
 	if ($ae_prodCsv) {
