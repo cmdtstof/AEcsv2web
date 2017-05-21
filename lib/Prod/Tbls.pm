@@ -4,18 +4,14 @@ package Prod::Tbls;
 
 use warnings;
 use strict;
-
-use Data::Dumper;
-
-use Utili::LogCmdt;
 use Utili::FileTools;
 use Utili::Timi;
 
 
 sub prodGesamtTbl {
 
-	my $filePattern		= $AppEnergie::fileGesamt . "????.csv";
-	my @files = Utili::FileTools::getFileListFromPattern( $AppEnergie::ae_outputDir, $filePattern );
+	my $filePattern		= $AEdataProc::config{fileGesamt} . "????.csv";
+	my @files = Utili::FileTools::getFileListFromPattern( $AEdataProc::config{outputDir}, $filePattern );
 
 	my $i = 0;
 	foreach (@files) {
@@ -33,7 +29,7 @@ sub prodCsv2Tbl {
 	my ($fileIn, $fileOut) = @_;
 
 		open my $fh, '<', $fileIn or die "Could not open $fileIn: $!\n";    # ohne utf-8!!!!!!!
-		Utili::LogCmdt::logWrite( ( caller(0) )[3], "read from csv\t$fileIn" );
+		$AEdataProc::log->logWrite( ( caller(0) )[3], "read from csv\t$fileIn" );
 
 		open my $fhHtml, '>', $fileOut or die "Could not open $fileOut: $!\n";
 
@@ -55,7 +51,7 @@ sub prodCsv2Tbl {
 
 		close $fh;
 		close $fhHtml;
-		Utili::LogCmdt::logWrite( ( caller(0) )[3], "html-tbl written to\t$fileOut" );
+		$AEdataProc::log->logWrite( ( caller(0) )[3], "html-tbl written to\t$fileOut" );
 
 	return;
 	
@@ -66,7 +62,7 @@ sub prodCsv2Tbl {
 sub cellTrimmer {
 	my ($str) = @_;
 	if ( $str eq "" ) {
-		$str = $AppEnergie::ae_emptyValue;
+		$str = $AEdataProc::config{emptyValue};
 	}
 	return $str;
 }

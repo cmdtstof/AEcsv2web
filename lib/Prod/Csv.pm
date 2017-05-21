@@ -5,10 +5,6 @@ package Prod::Csv;
 use warnings;
 use strict;
 
-use Data::Dumper;
-
-use Utili::LogCmdt;
-use Db::AeDb;
 use Utili::Timi;
 use Utili::Numi;
 
@@ -44,7 +40,7 @@ sub prodAnlageTot {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTot . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTot} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -60,7 +56,7 @@ sub prodAnlageTot {
 				}
 				print $fh "$datum,$arbeit\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
@@ -83,7 +79,7 @@ sub prodAnlageTagCompare {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTagDiff . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTagDiff} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -109,7 +105,7 @@ sub prodAnlageTagCompare {
 #print Dumper $anlageResult;
 				print $fh "$datum,$arbeit,$arbeitemon,$diff,$diffproz\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
@@ -131,7 +127,7 @@ sub prodAnlageTagEmon{
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTagEmon . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTagEmon} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -149,7 +145,7 @@ sub prodAnlageTagEmon{
 #print Dumper $anlageResult;
 				print $fh "$datum,$arbeit\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
@@ -176,7 +172,7 @@ sub prodAnlageTag {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTag . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTag} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -192,7 +188,7 @@ sub prodAnlageTag {
 				}
 				print $fh "$datum,$arbeit\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
@@ -213,7 +209,7 @@ sub prodAnlageMonate {
 		my $anlageId = $resultAnlagen->{id};
 		my $anlage = $resultAnlagen->{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageMonat . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageMonat} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 				
 		###header
@@ -240,7 +236,7 @@ sub prodAnlageMonate {
 				print $fh "\n";
 			}
 
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 	}
 	return;	
@@ -253,7 +249,7 @@ sub prodGesamtJahr {
 	my $jahrEnd = Utili::Timi::getYearToday();
 	
 	my $anlage = "alle"; 
-	$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageJahr . $anlage . ".csv";
+	$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageJahr} . $anlage . ".csv";
 	open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 
 #wie jahresproduktion / anlage 
@@ -276,7 +272,7 @@ sub prodGesamtJahr {
 		print $fh "$DatumBis,$sumNarbeit\n";
 				
 	}
-	Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+	$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 	close $fh;	
 	return;
 	
@@ -292,7 +288,7 @@ sub prodAnlageJahr {
 		my $anlageId = $resultAnlagen->{id};
 		my $anlage = $resultAnlagen->{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageJahr . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageJahr} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!		
 		
 		###header
@@ -308,11 +304,11 @@ sub prodAnlageJahr {
 					my $sumNarbeit = $anlageResult->{sumNarbeit};
 					print $fh "$date,$sumNarbeit\n";
 				} else {
-					Utili::LogCmdt::logWrite((caller(0))[3], "QS ERROR data error anlage=\t$anlageId");
+					$AEdataProc::log->logWrite((caller(0))[3], "QS ERROR data error anlage=\t$anlageId");
 				}
 				
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 	}
 	return;
@@ -334,7 +330,7 @@ sub prodGesamtAlleJahr {
 	
 	for (my $jahr = $jahrBegin; $jahr <= $jahrEnd; $jahr++) {
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileGesamt . $jahr . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileGesamt} . $jahr . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 
 		my @sumAnlage = (0) x ($anlageTot + 1); #[0] vergessen wir!!!!
@@ -381,7 +377,7 @@ sub prodGesamtAlleJahr {
 		}
 		print $fh "," . Utili::Numi::formatNum($sumJahr) . "," . Utili::Numi::formatNum($sumJahr) . "\n"; 
 		
-		Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");	
+		$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");	
 		close $fh;
 	
 	}

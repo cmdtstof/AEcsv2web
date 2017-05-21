@@ -9,8 +9,6 @@ use strict;
 use DBI;
 use XML::Simple qw(:strict);
 
-use Utili::LogCmdt;
-use Data::Dumper;
 use Utili::FileTools;
 use SQL::Abstract;
 
@@ -23,17 +21,16 @@ sub tester {
 }
 
 sub dbOpen {
-### sqlight
-	my $database = $AppEnergie::ae_db;
+	my ($dbType, $dbHost, $dbPort, $dbName, $dbUser, $dbPwd) = @_;
 
-	if ($AppEnergie::ae_dbType eq "sqlite") {
+### sqlight
+
+	if ($dbType eq "sqlite") {
 		$dbh =
-		  DBI->connect( "dbi:SQLite:dbname=$database", "", "",
+		  DBI->connect( "dbi:SQLite:dbname=$dbName", "", "",
 			{ RaiseError => 1, AutoCommit => 1 } )
 		  || die "Could not connect to database: $DBI::errstr";
-		Utili::LogCmdt::logWrite( ( caller(0) )[3],
-			"open db $database. dump from: $AppEnergie::ae_dataStatus" );
-		
+		$AEdataProc::log->logWrite(( caller(0) )[3], "open db $dbName");		
 	}
 		
 	return;
@@ -41,10 +38,11 @@ sub dbOpen {
 }
 
 sub dbClose {
-	$dbh->disconnect();
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "close db" );
+	if ( $dbh ) {
+		$dbh->disconnect();
+		$AEdataProc::log->logWrite(( caller(0) )[3], "close db");		
+	}
 	return;
-
 }
 
 sub createAnlagen {
@@ -65,7 +63,7 @@ CREATE TABLE anlagen (
 	);
 	$rv = $dbh->do($stmt);
 
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "create tbl anlagen" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "create tbl anlagen" );
 	return;
 }
 
@@ -87,14 +85,14 @@ CREATE TABLE arbeit (
 	);
 	$rv = $dbh->do($stmt);
 
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "create tbl arbeit" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "create tbl arbeit" );
 	return;
 }
 
 sub migrateDb {
 	
 	#v0.4 tbl arbeit + arbeitemon(text)
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "migrate db to v0.4" );	
+$AEdataProc::log->logWrite( ( caller(0) )[3], "migrate db to v0.4" );	
 	
 	my $stmt = qq(
 alter table arbeit
@@ -144,9 +142,9 @@ sub updateArbeit {
 
 
 sub insertCsvAnlagenFull {
-	my $file = $AppEnergie::ae_dbImportDumps . $AppEnergie::fileDbScvAnlagen;
+	my $file = $AEdataProc::config{dbImportDumps} . $AEdataProc::config{fileDbScvAnlagen};
 	
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start import dump\t$file" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "start import dump\t$file" );
 	
 	open( CSV, $file ) || die "Can't open $file: $!\n";
 	my $sth = $dbh->prepare(
@@ -167,18 +165,18 @@ sub insertCsvAnlagenFull {
 
 
 sub _insertCsvArbeitFull {
-	my $filePattern = $AppEnergie::fileDbCsvArbeit . "*.csv";
+	my $filePattern = $AEdataProc::config{fileDbCsvArbeit} . "*.csv";
 	
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
 	
 	my @files =
-	  Utili::FileTools::getFileListFromPattern( $AppEnergie::ae_dbImportDumps,
+	  Utili::FileTools::getFileListFromPattern( $AEdataProc::config{dbImportDumps},
 		$filePattern );
 
 	foreach my $fileCsv (@files) {
 		open my $fh, '<', $fileCsv
 		  or die "Could not open $fileCsv: $!\n";    # ohne utf-8!!!!!!!
-		Utili::LogCmdt::logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
+		$AEdataProc::log->logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
 
 		my $sth = $dbh->prepare(
 "INSERT INTO arbeit (datum, anlageid, bArbeit, arbeit) VALUES (?,?,?,?)"

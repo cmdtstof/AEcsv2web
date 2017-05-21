@@ -21,9 +21,6 @@ package Db::ImportEmon;
 use warnings;
 use strict;
 
-use Db::EmonDb;
-use Utili::LogCmdt;
-use Utili::Dbgcmdt;
 use DateTime;
 
 my %feeds = (
@@ -73,7 +70,7 @@ sub importNotImported {
 		$datum = Db::EmonDb::getMaxTimeForFeed($feed);
 		my $importTill = DateTime->from_epoch( epoch => $datum );
 		$importTill->subtract(days => 1); # last full day
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=$importFrom till=$importTill" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=$importFrom till=$importTill" );
 		while ($importFrom < $importTill) { 
 			my %newFields = (
 				anlageid	=> $an_id,
@@ -89,10 +86,10 @@ Utili::LogCmdt::logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) fro
 					arbeitemon	=> $newFields{'arbeitemon'},
 				);
 				Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
-				Utili::LogCmdt::logWrite( ( caller(0) )[3], "updated\tid=$oldFields->{'id'}\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$updateFields{'arbeitemon'}" );
+				$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\tid=$oldFields->{'id'}\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$updateFields{'arbeitemon'}" );
 			} else { #row not exist > insert
 				Db::AeDb::insertHash('arbeit', %newFields);
-				Utili::LogCmdt::logWrite( ( caller(0) )[3], "inserted\t\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$newFields{'arbeitemon'}" );
+				$AEdataProc::log->logWrite( ( caller(0) )[3], "inserted\t\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$newFields{'arbeitemon'}" );
 			}
 			
 			$importFrom->add(days => 1);
@@ -132,7 +129,7 @@ Utili::Dbgcmdt::prnwo($compareFrom);
 
 #print Dumper $array1[0];
 
-	my $outfile = $AppEnergie::ae_outputDir . "compareData.csv"; 
+	my $outfile = $AEdataProc::config{outputDir} . "compareData.csv"; 
 	open my $fh, "> $outfile" or die "problem opening $outfile\n"; #write new
 	for (my $i = 0; $i < @array1; $i++) {
 		print $fh "$array1[$i]->{'date'}\t$array1[$i]{'arbeit'}\t$array1[$i]{'emon'}\n"; 
