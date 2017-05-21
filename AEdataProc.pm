@@ -224,12 +224,12 @@ if ($config{profile} eq "local") {
 	$config{dbAeType}		= "sqlite"; #Aedb
 	$config{dbAeHost}		= "";
 	$config{dbAePort}		= "";
-	$config{dbAeName}		= "../data/db/appenergie.db";
+	$config{dbAeName}		= "../data/db/sqlite/appenergie.db";
 	$config{dbAeUser}		= "";
 	$config{dbAePwd}		= "";
 
 	$config{dbEmType}		= "mysql"; #emoncms
-	$config{dbEmHost}		= "emoncms";
+	$config{dbEmHost}		= "localhost";
 	$config{dbEmPort}		= "3306";
 	$config{dbEmName}		= "emoncms";
 	$config{dbEmUser}		= "emon";
