@@ -9,8 +9,6 @@ use strict;
 use DBI;
 use XML::Simple qw(:strict);
 
-use Utili::LogCmdt;
-use Data::Dumper;
 use Utili::FileTools;
 use SQL::Abstract;
 
@@ -23,17 +21,16 @@ sub tester {
 }
 
 sub dbOpen {
-### stof003 sqlight
-	my $database = $AppEnergie::ae_db;
+	my ($dbType, $dbHost, $dbPort, $dbName, $dbUser, $dbPwd) = @_;
 
-	if ($AppEnergie::ae_dbType eq "sqlite") {
+### sqlight
+
+	if ($dbType eq "sqlite") {
 		$dbh =
-		  DBI->connect( "dbi:SQLite:dbname=$database", "", "",
+		  DBI->connect( "dbi:SQLite:dbname=$dbName", "", "",
 			{ RaiseError => 1, AutoCommit => 1 } )
 		  || die "Could not connect to database: $DBI::errstr";
-		Utili::LogCmdt::logWrite( ( caller(0) )[3],
-			"open db $database. dump from: $AppEnergie::ae_dataStatus" );
-		
+		$AEdataProc::log->logWrite(( caller(0) )[3], "open db $dbName");		
 	}
 		
 	return;
@@ -41,10 +38,11 @@ sub dbOpen {
 }
 
 sub dbClose {
-	$dbh->disconnect();
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "close db" );
+	if ( $dbh ) {
+		$dbh->disconnect();
+		$AEdataProc::log->logWrite(( caller(0) )[3], "close db");		
+	}
 	return;
-
 }
 
 sub createAnlagen {
@@ -65,7 +63,7 @@ CREATE TABLE anlagen (
 	);
 	$rv = $dbh->do($stmt);
 
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "create tbl anlagen" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "create tbl anlagen" );
 	return;
 }
 
@@ -81,14 +79,31 @@ CREATE TABLE arbeit (
 	`id`	INTEGER PRIMARY KEY AUTOINCREMENT,
 	`datum`	TEXT,
 	`anlageid`	TEXT,
-	`arbeit`	TEXT
+	`arbeit`	TEXT,
+	`arbeitemon`	TEXT
 );
 	);
 	$rv = $dbh->do($stmt);
 
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "create tbl arbeit" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "create tbl arbeit" );
 	return;
 }
+
+sub migrateDb {
+	
+	#v0.4 tbl arbeit + arbeitemon(text)
+$AEdataProc::log->logWrite( ( caller(0) )[3], "migrate db to v0.4" );	
+	
+	my $stmt = qq(
+alter table arbeit
+  add arbeitemon TEXT;
+	);
+	my $rv = $dbh->do($stmt);	
+	
+	return;
+}
+
+
 
 sub existsAnlageid {
 	my ($anlageid) = @_;
@@ -127,9 +142,9 @@ sub updateArbeit {
 
 
 sub insertCsvAnlagenFull {
-	my $file = $AppEnergie::ae_dbImportDumps . $AppEnergie::fileDbScvAnlagen;
+	my $file = $AEdataProc::config{dbImportDumps} . $AEdataProc::config{fileDbScvAnlagen};
 	
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start import dump\t$file" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "start import dump\t$file" );
 	
 	open( CSV, $file ) || die "Can't open $file: $!\n";
 	my $sth = $dbh->prepare(
@@ -150,18 +165,18 @@ sub insertCsvAnlagenFull {
 
 
 sub _insertCsvArbeitFull {
-	my $filePattern = $AppEnergie::fileDbCsvArbeit . "*.csv";
+	my $filePattern = $AEdataProc::config{fileDbCsvArbeit} . "*.csv";
 	
-	Utili::LogCmdt::logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
+	$AEdataProc::log->logWrite( ( caller(0) )[3], "start importing dumps\t$filePattern" );
 	
 	my @files =
-	  Utili::FileTools::getFileListFromPattern( $AppEnergie::ae_dbImportDumps,
+	  Utili::FileTools::getFileListFromPattern( $AEdataProc::config{dbImportDumps},
 		$filePattern );
 
 	foreach my $fileCsv (@files) {
 		open my $fh, '<', $fileCsv
 		  or die "Could not open $fileCsv: $!\n";    # ohne utf-8!!!!!!!
-		Utili::LogCmdt::logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
+		$AEdataProc::log->logWrite( ( caller(0) )[3], "import from csv\t$fileCsv" );
 
 		my $sth = $dbh->prepare(
 "INSERT INTO arbeit (datum, anlageid, bArbeit, arbeit) VALUES (?,?,?,?)"
@@ -212,6 +227,19 @@ select max(datum) as maxDatum from arbeit;
 	return $maxDatum;
 }
 
+#gives back last datum with a value for a given anlageid
+sub getMaxEmonDatumForAnlage {
+	my ($anlageid) = @_;
+	my $stmt = qq(
+SELECT max(datum) as maxDatum from arbeit where arbeitemon is not null AND anlageid=$anlageid; 	
+	);
+	my $sth = $dbh->prepare($stmt);
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $maxDatum = $result->{'maxDatum'}; 
+	return $maxDatum;
+}
+
 
 sub getAnlagen {
 	my $sth;
@@ -220,12 +248,33 @@ sub getAnlagen {
 	return $sth;
 }
 
+sub getAnlage {
+	my ($anlage) = @_;
+	my $sth = $dbh->prepare("SELECT * FROM anlagen where anlage = '$anlage'");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	return $result;	
+}
+
+
+
 sub getDataSetArbeit {
 	my $sth;
 	$sth = $dbh->prepare('SELECT * FROM arbeit');
 	$sth->execute();
 	return $sth;
 }
+
+#gives for anlageid arbeit (kwh) per day
+sub getArbeitTag{
+	my ($anlageid, $datum) = @_;
+	my $sth = $dbh->prepare("SELECT * FROM arbeit where anlageid = $anlageid AND datum = '$datum'");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref(); #TODO check if double
+	my $arbeit = $result->{arbeit};
+	return $arbeit;
+}
+
 
 sub getAlleJahrMonatAnlageSumNArbeit {    #gesamtproduktion
 	 #select anlageid,  strftime('%Y', datum) as jahr, strftime('%m', datum) as monat, sum(nArbeit) from arbeit group by jahr, monat, anlageid
@@ -254,7 +303,7 @@ sub getAnlageTagBArbeit {    #tagesproduktion brutto anlage
 #select datum, bArbeit from arbeit where anlageId = '5' AND datum >= '2014-10-01' AND datum <= '2014-12-31' order by datum
 	my $sth;
 	$sth = $dbh->prepare(
-'select datum, arbeit from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
+'select * from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
 	);
 	$sth->execute( $id, $DatumVon, $DatumBis );
 	return $sth;
@@ -275,6 +324,8 @@ sub getMonatSum { 	#monatsproduktion nur für einen monat+jahr+anlage
 	return $sum;
 }
 
+
+#$result(hashref(id, datum, anlageid, arbeit, arbeitemon)) = getArbeitAsHash($hash(anlageid, datum)) 
 sub getArbeitAsHash {
 	my (%newFields) = @_;
 

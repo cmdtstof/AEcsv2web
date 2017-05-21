@@ -5,10 +5,6 @@ package Prod::Csv;
 use warnings;
 use strict;
 
-use Data::Dumper;
-
-use Utili::LogCmdt;
-use Db::AeDb;
 use Utili::Timi;
 use Utili::Numi;
 
@@ -44,7 +40,7 @@ sub prodAnlageTot {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTot . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTot} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -55,21 +51,114 @@ sub prodAnlageTot {
 				my $datum = @$anlageResult{'datum'};
 				my $arbeit = @$anlageResult{'arbeit'};
 #print Dumper $anlageResult;
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
 				print $fh "$datum,$arbeit\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
 	return;
-
-
 }
+
+
+
+
+###############tagesproduktion anlage der letzten 3 monate ablesedaten emoncms data (data/dataTagDiff_furth.csv)
+sub prodAnlageTagCompare {
+	###zeitspanne ausrechnen
+#	my $datumBis = today();
+#	my $datumVon = $datumBis - 90;
+	my $datumBis = Db::AeDb::getMaxDatum();
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
+	
+	my $sth = Db::AeDb::getAnlagen();	
+	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
+		my $anlageId = @$resultAnlagen{id};
+		my $anlage = @$resultAnlagen{anlage};
+
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTagDiff} . "$anlage" . ".csv";
+		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+		
+		###header
+		print $fh "date,Ablese,Emon,diff,%\n";
+		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
+
+			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeit'};
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}				
+				my $arbeitemon = @$anlageResult{'arbeitemon'};
+				if (! defined $arbeitemon) {
+					$arbeitemon = 0;
+				}
+				my $diff = $arbeit - $arbeitemon;
+				my $diffproz = "-";
+				if ($arbeit != 0) {
+					$diffproz = $arbeitemon/$arbeit/100;
+				}
+				
+#print Dumper $anlageResult;
+				print $fh "$datum,$arbeit,$arbeitemon,$diff,$diffproz\n";
+			}
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
+			close $fh;
+			
+	}
+	return;
+}
+
+
+###############tagesproduktion anlage der letzten 3 monate for emoncms data compare 
+#datum, wert
+sub prodAnlageTagEmon{
+	###zeitspanne ausrechnen
+#	my $datumBis = today();
+#	my $datumVon = $datumBis - 90;
+	my $datumBis = Db::AeDb::getMaxDatum();
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
+	
+	my $sth = Db::AeDb::getAnlagen();	
+	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
+		my $anlageId = @$resultAnlagen{id};
+		my $anlage = @$resultAnlagen{anlage};
+
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTagEmon} . "$anlage" . ".csv";
+		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+		
+		###header
+		print $fh "date,Tagesproduktion (kWh) (emoncms!)\n";
+		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
+
+			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeitemon'};
+				
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
+				
+#print Dumper $anlageResult;
+				print $fh "$datum,$arbeit\n";
+			}
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
+			close $fh;
+			
+	}
+	return;
+	
+	
+	
+}
+
 
 
 ###############tagesproduktion analge der letzten 3 monate 
 #datum, wert
- 
 sub prodAnlageTag {
 
 	###zeitspanne ausrechnen
@@ -83,8 +172,7 @@ sub prodAnlageTag {
 		my $anlageId = @$resultAnlagen{id};
 		my $anlage = @$resultAnlagen{anlage};
 
-
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTag . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageTag} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
@@ -95,9 +183,12 @@ sub prodAnlageTag {
 				my $datum = @$anlageResult{'datum'};
 				my $arbeit = @$anlageResult{'arbeit'};
 #print Dumper $anlageResult;
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
 				print $fh "$datum,$arbeit\n";
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 			
 	}
@@ -118,7 +209,7 @@ sub prodAnlageMonate {
 		my $anlageId = $resultAnlagen->{id};
 		my $anlage = $resultAnlagen->{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageMonat . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageMonat} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 				
 		###header
@@ -145,7 +236,7 @@ sub prodAnlageMonate {
 				print $fh "\n";
 			}
 
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 	}
 	return;	
@@ -158,7 +249,7 @@ sub prodGesamtJahr {
 	my $jahrEnd = Utili::Timi::getYearToday();
 	
 	my $anlage = "alle"; 
-	$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageJahr . $anlage . ".csv";
+	$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageJahr} . $anlage . ".csv";
 	open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 
 #wie jahresproduktion / anlage 
@@ -181,7 +272,7 @@ sub prodGesamtJahr {
 		print $fh "$DatumBis,$sumNarbeit\n";
 				
 	}
-	Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+	$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 	close $fh;	
 	return;
 	
@@ -197,7 +288,7 @@ sub prodAnlageJahr {
 		my $anlageId = $resultAnlagen->{id};
 		my $anlage = $resultAnlagen->{anlage};
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageJahr . "$anlage" . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileAnlageJahr} . "$anlage" . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!		
 		
 		###header
@@ -213,11 +304,11 @@ sub prodAnlageJahr {
 					my $sumNarbeit = $anlageResult->{sumNarbeit};
 					print $fh "$date,$sumNarbeit\n";
 				} else {
-					Utili::LogCmdt::logWrite((caller(0))[3], "QS ERROR data error anlage=\t$anlageId");
+					$AEdataProc::log->logWrite((caller(0))[3], "QS ERROR data error anlage=\t$anlageId");
 				}
 				
 			}
-			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
 	}
 	return;
@@ -239,7 +330,7 @@ sub prodGesamtAlleJahr {
 	
 	for (my $jahr = $jahrBegin; $jahr <= $jahrEnd; $jahr++) {
 
-		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileGesamt . $jahr . ".csv";
+		$file = $AEdataProc::config{outputDir} . $AEdataProc::config{fileGesamt} . $jahr . ".csv";
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 
 		my @sumAnlage = (0) x ($anlageTot + 1); #[0] vergessen wir!!!!
@@ -286,7 +377,7 @@ sub prodGesamtAlleJahr {
 		}
 		print $fh "," . Utili::Numi::formatNum($sumJahr) . "," . Utili::Numi::formatNum($sumJahr) . "\n"; 
 		
-		Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");	
+		$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");	
 		close $fh;
 	
 	}

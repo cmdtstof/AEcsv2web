@@ -30,11 +30,11 @@ sub logOpen {
 =item nill = LogCmdt::logOpen();
 creates log file
 =cut
-	if ($AppEnergie::ae_writeLog) {
+	if ($AEdataProc::configae_writeLog) {
 
-	my $logfile = $AppEnergie::ae_logfile;
+	my $logfile = $AEdataProc::configae_logfile;
 	open $fhlog, ">:encoding(UTF-8)", $logfile or die "$logfile: $!";
-	Utili::LogCmdt::logWrite((caller(0))[3], "start");
+	$AEdataProc::log->logWrite((caller(0))[3], "start");
 	}
 	return;
 
@@ -44,8 +44,8 @@ sub logClose {
 =item $code = LogCmdt::logClose();
 close log file
 =cut
-	if ($AppEnergie::ae_writeLog) {
-	Utili::LogCmdt::logWrite((caller(0))[3], "fin");
+	if ($AEdataProc::configae_writeLog) {
+	$AEdataProc::log->logWrite((caller(0))[3], "fin");
 	close $fhlog;
 	}
 	return;
@@ -59,12 +59,12 @@ writes $logtext into logfile
 =cut
 	my ($caller, $logtext ) = @_;
 	my $str = localtime(time) . "\t $caller\t $logtext\n";
-	if ($AppEnergie::ae_writeLog) {
+	if ($AEdataProc::configae_writeLog) {
 
 	print $fhlog $str;
 	}
 
-	if ($AppEnergie::ae_stderrOutput) {
+	if ($AEdataProc::configae_stderrOutput) {
 		print STDERR "$str";		
 	}
 
@@ -73,7 +73,7 @@ writes $logtext into logfile
 
 sub logShowError {
 	
-	open($fhlog, $AppEnergie::ae_logfile);
+	open($fhlog, $AEdataProc::configae_logfile);
 	my @list=<$fhlog>;
 	my $searchFor="QS ERROR";
 	my @result=grep /$searchFor/,@list;

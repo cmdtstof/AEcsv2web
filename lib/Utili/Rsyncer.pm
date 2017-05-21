@@ -14,19 +14,19 @@ sub upload {
 ##!/bin/bash
 #rsync -rvzuP --delete /data/bodies/appenergie/website/www_new/* root@vps288538.ovh.net:/var/www/appenergie/data
 
-	my $src = $AppEnergie::ae_outputDir;
+	my $src = $AEdataProc::config{outputDir};
 #	my $src = "/data/bodies/appenergie/scr/testdata/output/";
 	
-	my $dst = $AppEnergie::ae_wwwDataDir;
+	my $dst = $AEdataProc::config{wwwDataDir};
 
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "start uploading" );
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "start uploading from\t$src" );
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "start uploading to\t$dst" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "start uploading" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "start uploading from\t$src" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "start uploading to\t$dst" );
 
 	
 	system('rsync', '-rvzuP', '--delete', $src, $dst);
 
-Utili::LogCmdt::logWrite( ( caller(0) )[3], "finish uploading" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "finish uploading" );
 	return;
 	
 }
