@@ -50,7 +50,7 @@ our %config = (
 	writeLog	=> 1,
 	logFile		=> "../log/logfile.csv",
 	verbose		=> 1, #output also to stderr
-	logAppend	=> 0, #1=append log
+	logAppend	=> 1, #1=append log
 
 	fileDbScvAnlagen	=> "ae_anlagen_db_import.csv",
 	fileDbCsvArbeit		=> "ae_arbeit_db_import_", #ae_arbeit_db_import_furth.csv
@@ -75,18 +75,18 @@ our %config = (
 #what do do in dev (default) profile mode
 
 my %doer = (
-	setupDb			=> 0,	#1 if db is used
+	setupDb			=> 1,	#1 if db is used
 	testing			=> 0,	#1=do some testing
 	createDb 		=> 0,   #1=create db
 	migrateDb		=> 0,	#1=migrate db
 	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db !!!!
-	importRaw		=> 0,	#1=import raw data into db
-	importEmon   	=> 0,  	#1=import from emoncms db
-	prodCsv			=> 0,	# 1=create csv files
-	prodTbl			=> 0,	# 1=produce tables
+	importRaw		=> 1,	#1=import raw data into db
+	importEmon   	=> 1,  	#1=import from emoncms db
+	prodCsv			=> 1,	# 1=create csv files
+	prodTbl			=> 1,	# 1=produce tables
 	#prodCharts		=> 0,	# 1=produce charts
 	#prodPdf		=> 0,	# 1=produce pdf
-	uploadFiles		=> 0,	# 1=upload files to fileserver
+	uploadFiles		=> 1,	# 1=upload files to fileserver
 	writeQsError	=> 1,	#1=write qs errors to stderr
 );
 
@@ -135,6 +135,7 @@ sub new{
  [--profile test]		= default
  [--profile local]		= data processing on local maschine and upload to server
  [--profile webserver]	= perl code on webserver    
+ [--setupDb]			= setup dbs
  [--verbose]			= show comment on screen
  [--createdb]			= creates new db
  [--migragedb]			= migrages db		
@@ -151,6 +152,7 @@ sub getOptions{
 	GetOptions (
 		"profile|p=s"	=> \$config{profile}, 
 		"verbose!"		=> \$config{verbose},
+		"setupdb"		=> \$config{setupDb},
 		"createdb"		=> \$doer{createDb},
 		"migratedb"		=> \$doer{migrateDb},
 		"importdumps"	=> \$doer{importDumps},
@@ -171,19 +173,19 @@ sub getOptions{
 sub getProfile{
 
 
-if ($config{profile} eq "prod") {
+if ($config{profile} eq "local") {
 # codebase (ie): /data/prod/appenergie/aedataproc/scr/
 	$config{outputDir}		= "/data/bodies/appenergie/website/www_new/data/";
 	$config{wwwDataDir}		= 'root@vps288538.ovh.net:/var/www/appenergie/data';
 	$config{dbImportDumps}	= "../data/dumps/";
 	$config{rawDataDir}		= "../data/raw/";
 	
-	$config{dbAeType}			= "sqlite";
-	$config{dbAeHost}			= "";
-	$config{dbAePort}			= "";
-	$config{dbAeName}			= "../data/db/sqlite/appenergie.db";
-	$config{dbAeUser}			= "";
-	$config{dbAePwd}			= "";
+	$config{dbAeType}		= "sqlite";
+	$config{dbAeHost}		= "";
+	$config{dbAePort}		= "";
+	$config{dbAeName}		= "../data/db/sqlite/appenergie.db";
+	$config{dbAeUser}		= "";
+	$config{dbAePwd}		= "";
 	
 
 
@@ -195,19 +197,19 @@ if ($config{profile} eq "prod") {
 	$config{dbImportDumps}	= "../data/dumps/";
 	$config{rawDataDir}		= "../data/raw/";
 	
-	$config{dbAeType}			= "sqlite"; #Aedb
-	$config{dbAeHost}			= "";
-	$config{dbAePort}			= "";
-	$config{dbAeName}			= "../data/db/test.db";
-	$config{dbAeUser}			= "";
-	$config{dbAePwd}			= "";
+	$config{dbAeType}		= "sqlite"; #Aedb
+	$config{dbAeHost}		= "";
+	$config{dbAePort}		= "";
+	$config{dbAeName}		= "../data/db/test.db";
+	$config{dbAeUser}		= "";
+	$config{dbAePwd}		= "";
 	
-	$config{dbEmType}			= "mysql"; #emoncms
-	$config{dbEmHost}			= "emoncms";
-	$config{dbEmPort}			= "3306";
-	$config{dbEmName}			= "emoncms";
-	$config{dbEmUser}			= "emoncms";
-	$config{dbEmPwd}			= "emoncms";
+	$config{dbEmType}		= "mysql"; #emoncms
+	$config{dbEmHost}		= "emoncms";
+	$config{dbEmPort}		= "3306";
+	$config{dbEmName}		= "emoncms";
+	$config{dbEmUser}		= "emoncms";
+	$config{dbEmPwd}		= "emoncms";
 
 #server
 } elsif ($config{profile} eq "server") {
@@ -219,6 +221,19 @@ if ($config{profile} eq "prod") {
 	$config{dbType}			=	"mysql";
 	$config{rawDataDir}		= "../data/raw/";
 
+	$config{dbAeType}		= "sqlite"; #Aedb
+	$config{dbAeHost}		= "";
+	$config{dbAePort}		= "";
+	$config{dbAeName}		= "../data/db/appenergie.db";
+	$config{dbAeUser}		= "";
+	$config{dbAePwd}		= "";
+
+	$config{dbEmType}		= "mysql"; #emoncms
+	$config{dbEmHost}		= "emoncms";
+	$config{dbEmPort}		= "3306";
+	$config{dbEmName}		= "emoncms";
+	$config{dbEmUser}		= "emon";
+	$config{dbEmPwd}		= "uOcl3UchAJI8NEZKQBZg";
 	
 } else {  #else error!
 	die("Error wrong profile\n");
