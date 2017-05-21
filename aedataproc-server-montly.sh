@@ -9,3 +9,7 @@ perl /data/bodies/appenergie/scr/scr/AEdataProc.pm \
 --csv \
 --tbl \
 --upload
+
+
+chown -R www-data:www-data /var/www/appenergie
+chmod -R 755 /var/www/appenergie

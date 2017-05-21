@@ -5,11 +5,9 @@
 
 perl /opt/appenergie/aedataproc/scr/AEdataProc.pm \
 --profile server \
---verbose \
 --setupdb \
 --importemon \
 --csv \
---tbl \
 --upload
 
 

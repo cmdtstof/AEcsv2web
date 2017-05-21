@@ -75,19 +75,19 @@ our %config = (
 #what do do in dev (default) profile mode
 
 my %doer = (
-	setupDb			=> 1,	#1 if db is used
+	setupDb			=> 0,	#1 if db is used
 	testing			=> 0,	#1=do some testing
 	createDb 		=> 0,   #1=create db
 	migrateDb		=> 0,	#1=migrate db
 	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db !!!!
-	importRaw		=> 1,	#1=import raw data into db
-	importEmon   	=> 1,  	#1=import from emoncms db
-	prodCsv			=> 1,	# 1=create csv files
-	prodTbl			=> 1,	# 1=produce tables
+	importRaw		=> 0,	#1=import raw data into db
+	importEmon   	=> 0,  	#1=import from emoncms db
+	prodCsv			=> 0,	# 1=create csv files
+	prodTbl			=> 0,	# 1=produce tables
 	#prodCharts		=> 0,	# 1=produce charts
 	#prodPdf		=> 0,	# 1=produce pdf
-	uploadFiles		=> 1,	# 1=upload files to fileserver
-	writeQsError	=> 1,	#1=write qs errors to stderr
+	uploadFiles		=> 0,	# 1=upload files to fileserver
+	writeQsError	=> 0,	#1=write qs errors to stderr
 );
 
 
@@ -137,6 +137,7 @@ sub new{
  [--profile webserver]	= perl code on webserver    
  [--setupDb]			= setup dbs
  [--verbose]			= show comment on screen
+ [--testing]			= some testing
  [--createdb]			= creates new db
  [--migragedb]			= migrages db		
  [--importdumps]			= import dbdump into db
@@ -151,8 +152,9 @@ sub new{
 sub getOptions{
 	GetOptions (
 		"profile|p=s"	=> \$config{profile}, 
-		"verbose!"		=> \$config{verbose},
-		"setupdb"		=> \$config{setupDb},
+		"verbose"		=> \$config{verbose},
+		"testing"		=> \$doer{testing},	
+		"setupdb"		=> \$doer{setupDb},
 		"createdb"		=> \$doer{createDb},
 		"migratedb"		=> \$doer{migrateDb},
 		"importdumps"	=> \$doer{importDumps},
@@ -259,7 +261,10 @@ sub tester{
 	$log->logWrite($config{app}, "testing...");	
 	
 #Utili::Dbgcmdt::dumper(\%config);	
+Utili::Dbgcmdt::dumper(\%doer);
 
+
+	die;
 
 	return;
 }
