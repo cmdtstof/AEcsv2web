@@ -305,7 +305,7 @@ sub getAnlageTagBArbeit {    #tagesproduktion brutto anlage
 #select datum, bArbeit from arbeit where anlageId = '5' AND datum >= '2014-10-01' AND datum <= '2014-12-31' order by datum
 	my $sth;
 	$sth = $dbh->prepare(
-'select datum, arbeit from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
+'select * from arbeit where anlageId = ? AND datum >= ? AND datum <= ? order by datum'
 	);
 	$sth->execute( $id, $DatumVon, $DatumBis );
 	return $sth;

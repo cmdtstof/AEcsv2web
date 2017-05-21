@@ -55,6 +55,9 @@ sub prodAnlageTot {
 				my $datum = @$anlageResult{'datum'};
 				my $arbeit = @$anlageResult{'arbeit'};
 #print Dumper $anlageResult;
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
 				print $fh "$datum,$arbeit\n";
 			}
 			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
@@ -62,9 +65,58 @@ sub prodAnlageTot {
 			
 	}
 	return;
-
-
 }
+
+
+
+
+###############tagesproduktion anlage der letzten 3 monate ablesedaten emoncms data (data/dataTagDiff_furth.csv)
+sub prodAnlageTagCompare {
+	###zeitspanne ausrechnen
+#	my $datumBis = today();
+#	my $datumVon = $datumBis - 90;
+	my $datumBis = Db::AeDb::getMaxDatum();
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
+	
+	my $sth = Db::AeDb::getAnlagen();	
+	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
+		my $anlageId = @$resultAnlagen{id};
+		my $anlage = @$resultAnlagen{anlage};
+
+		$file = $AppEnergie::ae_outputDir . $AppEnergie::fileAnlageTagDiff . "$anlage" . ".csv";
+		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
+		
+		###header
+		print $fh "date,Ablese,Emon,diff,%\n";
+		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
+
+			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
+				my $datum = @$anlageResult{'datum'};
+				my $arbeit = @$anlageResult{'arbeit'};
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}				
+				my $arbeitemon = @$anlageResult{'arbeitemon'};
+				if (! defined $arbeitemon) {
+					$arbeitemon = 0;
+				}
+				my $diff = $arbeit - $arbeitemon;
+				my $diffproz = "-";
+				if ($arbeit != 0) {
+					$diffproz = $arbeitemon/$arbeit/100;
+				}
+				
+#print Dumper $anlageResult;
+				print $fh "$datum,$arbeit,$arbeitemon,$diff,$diffproz\n";
+			}
+			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");
+			close $fh;
+			
+	}
+	return;
+}
+
+
 ###############tagesproduktion anlage der letzten 3 monate for emoncms data compare 
 #datum, wert
 sub prodAnlageTagEmon{
@@ -135,6 +187,9 @@ sub prodAnlageTag {
 				my $datum = @$anlageResult{'datum'};
 				my $arbeit = @$anlageResult{'arbeit'};
 #print Dumper $anlageResult;
+				if (! defined $arbeit) {
+					$arbeit = 0;
+				}
 				print $fh "$datum,$arbeit\n";
 			}
 			Utili::LogCmdt::logWrite((caller(0))[3], "csv written\t$file");

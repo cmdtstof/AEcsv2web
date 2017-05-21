@@ -179,7 +179,7 @@ sub getWorkPerDay {
 	}
 
 	$workSecSum += ((86400 - $secSum) * $dataLast ); # add for remaing sec 
-	my $workdaySum = $workSecSum / 86400;
+	my $workdaySum = $workSecSum / 3600; #why 3600 and not 86400????
 
 	return ($workdaySum);
 
