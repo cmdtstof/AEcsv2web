@@ -1,0 +1,20 @@
+#!/bin/bash
+# cron backup script
+# 17.1.17/cm
+# 25.5.17/cm sqlite db added
+
+##########mysql emoncms database
+
+mkdir -p /tmp/backup/mysql
+
+/usr/bin/mysqldump --compress --user=emon --password=uOcl3UchAJI8NEZKQBZg --add-drop-table emoncms > /tmp/backup/mysql/emoncms.sql
+
+tar cjf /tmp/backup/mysql/emoncms.sql.tar.bz2 /tmp/backup/mysql/emoncms.sql
+
+rm /tmp/backup/mysql/emoncms.sql
+ 
+###########
+mkdir -p /tmp/backup/sqlite
+cp /opt/appenergie/aedataproc/data/db/sqlite/appenergie.db /tmp/backup/sqlite/
+tar cjf /tmp/backup/sqlite/appenergie.db.tar.bz2 /tmp/backup/sqlite/appenergie.db
+rm /tmp/backup/sqlite/appenergie.db

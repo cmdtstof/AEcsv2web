@@ -3,7 +3,9 @@
 
 #!!!! --migratedb
 
-perl /opt/appenergie/aedataproc/scr/AEdataProc.pm \
+cd /opt/appenergie/aedataproc/scr
+
+perl AEdataProc.pm \
 --profile server \
 --setupdb \
 --importemon \

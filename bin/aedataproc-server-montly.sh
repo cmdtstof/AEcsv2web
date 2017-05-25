@@ -1,7 +1,9 @@
 #!/bin/bash
 # start script for AppEnergie profile "server"
 
-perl /data/bodies/appenergie/scr/scr/AEdataProc.pm \
+cd /opt/appenergie/aedataproc/scr
+
+perl AEdataProc.pm \
 --profile server \
 --setupdb \
 --importraw \
