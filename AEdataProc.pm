@@ -190,20 +190,20 @@ if ($config{profile} eq "local") {
 #dev	
 } elsif ($config{profile} eq "dev") {
 
-	$config{outputDir}   	= "../data/output/";
-	$config{wwwDataDir}		= "../data/www";
-	$config{dbImportDumps}	= "../data/dumps/";
-	$config{rawDataDir}		= "../data/raw/";
+	$config{outputDir}   	= "../datatest/output/";
+	$config{wwwDataDir}		= "../datatest/www";
+	$config{dbImportDumps}	= "../datatest/dumps/";
+	$config{rawDataDir}		= "../datatest/raw/";
 	
 	$config{dbAeType}		= "sqlite"; #Aedb
 	$config{dbAeHost}		= "";
 	$config{dbAePort}		= "";
-	$config{dbAeName}		= "../data/db/test.db";
+	$config{dbAeName}		= "../datatest/db/test.db";
 	$config{dbAeUser}		= "";
 	$config{dbAePwd}		= "";
 	
 	$config{dbEmType}		= "mysql"; #emoncms
-	$config{dbEmHost}		= "emoncms";
+	$config{dbEmHost}		= "emoncms"; #emoncms.rosslan.home
 	$config{dbEmPort}		= "3306";
 	$config{dbEmName}		= "emoncms";
 	$config{dbEmUser}		= "emoncms";
@@ -212,7 +212,7 @@ if ($config{profile} eq "local") {
 #server
 } elsif ($config{profile} eq "server") {
 # codebase (ie): /opt/appenergie/aedataproc/scr/
-# run: /opt/appenergie/aedataproc/scr/*.sh
+# run: /opt/appenergie/aedataproc/scr/bin/*.sh
 
 	$config{outputDir}   	= "../data/output/";
 	$config{wwwDataDir}		= "/var/www/appenergie/data";	
@@ -260,7 +260,7 @@ sub tester{
 Utili::Dbgcmdt::dumper(\%doer);
 
 
-	die;
+#	die;
 
 	return;
 }
