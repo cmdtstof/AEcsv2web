@@ -15,11 +15,6 @@ AEdataProc - Appenzeller-Energie.ch DataProcessor.
 
 create db, csv, tables for www from raw leistungsdata
 
-uses different profiles (ae_case):
-- dev
-- local (local processing and rsync to webserver)
-- server (processing on webserver)
-
 
 =head1 SYNOPSIS
 
@@ -132,21 +127,22 @@ sub new{
 # get options
 
 =head2 OPTIONS
- [--profile test]		= default
- [--profile local]		= data processing on local maschine and upload to server
- [--profile webserver]	= perl code on webserver    
- [--setupDb]			= setup dbs
- [--verbose]			= show comment on screen
- [--testing]			= some testing
- [--createdb]			= creates new db
- [--migragedb]			= migrages db		
- [--importdumps]			= import dbdump into db
- [--importraw]			= import csv data into db
- [--importemon]			= import data from emoncms into db
- [--csv] 					= creates csv from data
- [--tbl]					= creates html tables from data
- [--upload]				= uploads/moves data to webserver dir
- [--wrtqserr]			= write QS errors to stderr
+
+ [--profile test]	= default
+ [--profile local]	= data processing on local maschine and upload to webserver
+ [--profile server]	= perl code on webserver    
+ [--setupDb]		= setup dbs
+ [--verbose]		= show comment on screen
+ [--testing]		= some testing
+ [--createdb]		= creates new db
+ [--migratedb]		= migrates db		
+ [--importdumps]	= import dbdump into db
+ [--importraw]		= import csv data into db
+ [--importemon]		= import data from emoncms into db
+ [--csv]			= creates csv from data
+ [--tbl]			= creates html tables from data
+ [--upload]			= uploads/moves data to webserver dir
+ [--wrtqserr]		= write QS errors to stderr
 =cut
 
 sub getOptions{
