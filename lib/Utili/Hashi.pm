@@ -1,10 +1,15 @@
 #!/usr/bin/perl
-
 package Utili::Hashi;
-#some hash utilities
-
 use warnings;
 use strict;
+
+
+=head1 Utili::Hashi
+
+some hash printings for test purpose
+	
+=cut
+
 
 
 sub printSortedHash {

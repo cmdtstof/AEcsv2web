@@ -72,7 +72,8 @@ sub prodAnlageTagCompare {
 #	my $datumBis = today();
 #	my $datumVon = $datumBis - 90;
 	my $datumBis = Db::AeDb::getMaxDatum();
-	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
+	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);
+	
 	
 	my $sth = Db::AeDb::getAnlagen();	
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
@@ -164,7 +165,9 @@ sub prodAnlageTag {
 	###zeitspanne ausrechnen
 #	my $datumBis = today();
 #	my $datumVon = $datumBis - 90;
+#TODO getMaxDatum for each anlage separate!!!
 	my $datumBis = Db::AeDb::getMaxDatum();
+#TODO use DateTime; !!!
 	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
 	
 	my $sth = Db::AeDb::getAnlagen();	

@@ -3,20 +3,20 @@ package AEdataProc;
 use warnings;
 use strict;
 
-=head1 NAME
+=head1 AEdataProc
 
-AEdataProc - Appenzeller-Energie.ch DataProcessor.
+Appenzeller-Energie.ch DataProcessor.
 
-=head1 VERSIONS
+=head2 VERSIONS
 
 
 
-=head1 COMMENTS
+=head2 COMMENTS
 
 create db, csv, tables for www from raw leistungsdata
 
 
-=head1 SYNOPSIS
+=head2 SYNOPSIS
 
     perl AEdataProc options
     
@@ -404,7 +404,7 @@ sub writeQsError {
 
 1;
 
-=head1 COPYRIGHT
+=head2 COPYRIGHT
 
 Copyright 2017 cmdt.ch L<http://cmdt.ch/>. All rights reserved.
 

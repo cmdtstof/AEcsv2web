@@ -1,11 +1,18 @@
 #!/usr/bin/perl
-# DBI functions
-#
-
 package Db::AeDb;
-
 use warnings;
 use strict;
+
+
+=head1 Db::AeDb
+
+DBI functions for sqlite db
+    
+=cut
+
+
+
+
 use DBI;
 use XML::Simple qw(:strict);
 
@@ -19,6 +26,12 @@ sub tester {
 	return;
 
 }
+
+=over
+
+
+=item nil = dbOpen($dbType, $dbHost, $dbPort, $dbName, $dbUser, $dbPwd);
+=cut	
 
 sub dbOpen {
 	my ($dbType, $dbHost, $dbPort, $dbName, $dbUser, $dbPwd) = @_;
@@ -413,4 +426,8 @@ sub normaliseMonate {
 
 }
 
+
 1;
+
+
+=back

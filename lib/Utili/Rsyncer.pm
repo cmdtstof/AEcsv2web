@@ -1,11 +1,9 @@
 #!/usr/bin/perl
-
 package Utili::Rsyncer;
-
 use warnings;
 use strict;
 
-use Data::Dumper;
+
 
 sub upload {
 

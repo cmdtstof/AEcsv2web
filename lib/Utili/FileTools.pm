@@ -1,13 +1,22 @@
 #!/usr/bin/perl
-
 package Utili::FileTools;
-
 use warnings;
 use strict;
 
-use Data::Dumper;
+#use Data::Dumper;
+
+=head1 Utili::FileTools
+
+some file utilities
+	
+=cut
 
 
+
+=over
+
+=item @files = getFileListFromPattern($searchDir, $filePattern)
+=cut
 sub getFileListFromPattern {
 #searchDir inkl. / on end!
 	my ($searchDir, $filePattern) = @_;
@@ -22,8 +31,10 @@ sub getFileListFromPattern {
 	return @files;
 }
 
+=item $without_extension = getPathFilenamePref($pathFilename)
+=cut
+
 sub getPathFilenamePref {
-#returns path/filename without extension
 	my ($pathFilename) = @_;
 
 	(my $without_extension = $pathFilename) =~ s/\.[^.]+$//;
@@ -33,8 +44,7 @@ sub getPathFilenamePref {
  	
 }
 
-	
-
-
 
 1;
+
+=back

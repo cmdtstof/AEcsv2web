@@ -1,21 +1,19 @@
 #!/usr/bin/perl
-=head1 NAME
+=head1 Utili::LogCmdtOO
 
-Utili::LogCmdtOO
 
-=item $LogCmdt::fhlog = log filehandler
+=head2 usage: initialize, open, write from main
 
-LogCmdt::logWrite((caller(0))[3], "start"); 
->>>> (caller(0))[3] works only out from subroutine, not out from main!!!
+	our $log = Utili::LogCmdtOO->new(1, "../log/log.csv", 1, 0);
+	$log->logOpen();
+	$log->logWrite($config{tool}, "start..."); #=item nil = LogCmdt::logWrite( $caller, $logtext );
 
-usage: initialize, open, write from main
-	our $jplog = Utili::LogCmdtOO->new(1, "../log/jplog.txt", 1, 0); #=item nil = new( writeLog, logFile, verboser, logAppend );
-	$jplog->logOpen();
-	$jplog->logWrite($config{tool}, "start..."); #=item nil = LogCmdt::logWrite( $caller, $logtext );
-and then:
-	$Jobparser::jplog->logWrite(( caller(0) )[3], "start testing...");
+=head2 and then:
 
-fin:
+	$app::log->logWrite(( caller(0) )[3], "start testing...");
+
+=head2 fin:
+
 	$log->logWrite($config{tool}, "...end");
 	$log->logClose();
 	$log->logShowError();
@@ -38,14 +36,11 @@ use Data::Dumper;
 
 my $fhlog; 	#log file handler
 
-sub new {
-=item nil = new( writeLog, logFile, verboser, logAppend );
-creates instance
-#	my $writeLog	= shift; # 1=write log entry
-#	my $logFile	= shift;		##path/logfilename
-#	my $verboser	= shift; #1=output on screen
-#	my $logAppend	= shift; #1= append log file to existing
+=over
+
+=item $log = new( writeLog, logFile, verboser, logAppend );
 =cut	
+sub new {
 	my $class = shift;
 	my $config = {
 		writeLog	=> shift, # 1=write log entry
@@ -60,10 +55,11 @@ creates instance
 	return $self;
 }	
 
-sub logOpen {
-=item nill = LogCmdt::logOpen();
+=item nil = $log->logOpen();
 creates log file
 =cut
+sub logOpen {
+
 	my $self = shift;
 	
 	if ($self->{config}->{writeLog}) {
@@ -79,17 +75,8 @@ creates log file
 
 }
 
-sub logInfo {
-	my $self = shift;
-	print "logInfo";
-	print Dumper $self; #logInfo$VAR1 = \bless( {}, 'Utili::Log' );
-	return;
-}
-
-
-
 sub logClose {
-=item $code = LogCmdt::logClose();
+=item nil = $log->logClose();
 close log file
 =cut
 	my $self = shift;
@@ -101,7 +88,7 @@ close log file
 }
 
 sub logWrite {
-=item nil = LogCmdt::logWrite( $caller, $logtext );
+=item nil = $log->logWrite( $caller, $logtext );
 writes $logtext into logfile
 =cut
 	my $self = shift;
@@ -117,7 +104,9 @@ writes $logtext into logfile
 
 	return;
 }
-
+=item nil = $log->logShowError();
+prints all "QS ERROR" lines
+=cut
 sub logShowError {
 	my $self = shift;
 	open($fhlog, $self->{config}->{logFile});
@@ -134,16 +123,14 @@ print "***********QS ERRORs fin************\n";
 
 1;
 
-=head1 COPYRIGHT
 
-=for COPYRIGHT BEGIN
+=back
 
-cmdt.ch
+=head2 COPYRIGHT
 
-=for COPYRIGHT END
+Copyright 2017 cmdt.ch L<http://cmdt.ch/>. All rights reserved.
 
-=for LICENSE BEGIN
-
-CC-BY-SA cmdt L<http://cmdt.ch/>.
-
-=for LICENSE END
+This library is free software; you can redistribute it and/or
+modify it under the same terms as Perl itself.
+    
+=cut

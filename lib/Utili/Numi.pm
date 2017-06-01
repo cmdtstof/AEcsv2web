@@ -1,10 +1,14 @@
 #!/usr/bin/perl
 
 package Utili::Numi;
-#some number utilities
-
 use warnings;
 use strict;
+
+=head1 Utili::Numi
+
+some number utilities with Number::Format
+	
+=cut
 
 
 use Number::Format;
@@ -19,7 +23,11 @@ print "(1)" . formatNum($num);
 
 }
 
+=over
 
+=item 7'654'321.25 = formatNum(7654321.25)
+
+=cut
 sub formatNum {
 	my ($number) = @_;
 	
@@ -30,11 +38,6 @@ sub formatNum {
 
 }
 
-
-
-
-
-
-
-
 1;
+
+=back
