@@ -240,6 +240,21 @@ select max(datum) as maxDatum from arbeit;
 	return $maxDatum;
 }
 
+sub getMaxDatumAnlage {
+	my ($anlageid) = @_;
+#	my $stmt = qq(
+#select max(datum) as maxDatum from arbeit where anlageid = $anlageid; 	
+#	);
+	my $sth = $dbh->prepare("select max(datum) as maxDatum from arbeit where anlageid = $anlageid");
+	$sth->execute();
+	my $result = $sth->fetchrow_hashref();
+	my $maxDatum = $result->{'maxDatum'}; 
+	return $maxDatum;
+}
+
+
+
+
 #gives back last datum with a value for a given anlageid
 sub getMaxEmonDatumForAnlage {
 	my ($anlageid) = @_;

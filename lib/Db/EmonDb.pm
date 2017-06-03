@@ -12,6 +12,7 @@ use DBI;
 	my $dbh;
 
 #update arbeit SET arbeitemon = null
+#delete from arbeit where anlageid = "3"
 
 sub tester {
 

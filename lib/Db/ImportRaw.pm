@@ -8,7 +8,7 @@ use warnings;
 use strict;
 
 use Utili::Datum;
-
+use Utili::Dbgcmdt;
 
 #TODO must be changed if more then 9 anlagen!!!
 my $fileRawArbeitIdLength = 1;  
@@ -66,29 +66,23 @@ sub importRawArbeit {
 					
 					$newFields{'arbeit'} = checkValueArbeit($data[$i][1]);
 
-#print "importRaw newFields $i";
-#print Dumper \%newFields;
-
 					my %oldFields;
 					my $oldFieldsRef = Db::AeDb::getArbeitAsHash(%newFields);
 					
 					if ($oldFieldsRef) {
 						%oldFields = (%oldFields, %$oldFieldsRef);
 
-#print "importRaw oldFields";
-#print Dumper \%oldFields;
-
-#print "importRaw newfields arbeit = <$newFields{'arbeit'}>\n";
-#print "importRaw oldfields arbeit = <$oldFields{'arbeit'}>\n";
-
+						if (! defined $oldFields{'arbeit'}) {
+#Utili::Dbgcmdt::prnwo("oldFields");
+#Utili::Dbgcmdt::dumper(\%oldFields);
+							$oldFields{'arbeit'} = 0;	
+						}
 						if ($newFields{'arbeit'} ne $oldFields{'arbeit'}) {
 							my %updateFields;
 							$updateFields{'arbeit'} = $newFields{'arbeit'};
 							Db::AeDb::updateArbeit($oldFields{'id'}, %updateFields);						
 							$AEdataProc::log->logWrite( ( caller(0) )[3], "updated anlage datum arbeit:\t$anlageid\t$newFields{'datum'}\t$newFields{'arbeit'}" );
 						}
-
-						
 					} else { #insert
 
 						Db::AeDb::insertHash('arbeit', %newFields);

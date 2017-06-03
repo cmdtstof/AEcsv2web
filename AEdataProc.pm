@@ -45,7 +45,7 @@ our %config = (
 	writeLog	=> 1,
 	logFile		=> "../log/logfile.csv",
 	verbose		=> 1, #output also to stderr
-	logAppend	=> 1, #1=append log
+	logAppend	=> 0, #1=append log
 
 	fileDbScvAnlagen	=> "ae_anlagen_db_import.csv",
 	fileDbCsvArbeit		=> "ae_arbeit_db_import_", #ae_arbeit_db_import_furth.csv
@@ -113,6 +113,7 @@ if ($doer{writeQsError}) { writeQsError(); }
 
 
 ##############################################################################
+#not used!
 sub new{
 	my $class = shift;
 	my $self = {};

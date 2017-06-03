@@ -68,12 +68,6 @@ sub prodAnlageTot {
 
 ###############tagesproduktion anlage der letzten 3 monate ablesedaten emoncms data (data/dataTagDiff_furth.csv)
 sub prodAnlageTagCompare {
-	###zeitspanne ausrechnen
-#	my $datumBis = today();
-#	my $datumVon = $datumBis - 90;
-	my $datumBis = Db::AeDb::getMaxDatum();
-	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);
-	
 	
 	my $sth = Db::AeDb::getAnlagen();	
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
@@ -84,7 +78,12 @@ sub prodAnlageTagCompare {
 		open $fh, '>', $file or die "Could not open $file: $!\n"; # ohne utf-8!!!!!!!
 		
 		###header
-		print $fh "date,Ablese,Emon,diff,%\n";
+		print $fh "date,Ablese,Emon,diff\n";
+
+#calc time slot for each anlage 		
+		my $datumBis = Db::AeDb::getMaxDatumAnlage($anlageId);
+		my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);
+
 		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
 
 			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
@@ -97,14 +96,9 @@ sub prodAnlageTagCompare {
 				if (! defined $arbeitemon) {
 					$arbeitemon = 0;
 				}
-				my $diff = $arbeit - $arbeitemon;
-				my $diffproz = "-";
-				if ($arbeit != 0) {
-					$diffproz = $arbeitemon/$arbeit/100;
-				}
-				
-#print Dumper $anlageResult;
-				print $fh "$datum,$arbeit,$arbeitemon,$diff,$diffproz\n";
+				my $diff = $arbeitemon - $arbeit;
+
+				print $fh "$datum,$arbeit,$arbeitemon,$diff\n";
 			}
 			$AEdataProc::log->logWrite((caller(0))[3], "csv written\t$file");
 			close $fh;
@@ -117,11 +111,6 @@ sub prodAnlageTagCompare {
 ###############tagesproduktion anlage der letzten 3 monate for emoncms data compare 
 #datum, wert
 sub prodAnlageTagEmon{
-	###zeitspanne ausrechnen
-#	my $datumBis = today();
-#	my $datumVon = $datumBis - 90;
-	my $datumBis = Db::AeDb::getMaxDatum();
-	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
 	
 	my $sth = Db::AeDb::getAnlagen();	
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
@@ -133,6 +122,11 @@ sub prodAnlageTagEmon{
 		
 		###header
 		print $fh "date,Tagesproduktion (kWh) (emoncms!)\n";
+
+#calc time slot for each anlage 		
+		my $datumBis = Db::AeDb::getMaxDatumAnlage($anlageId);
+		my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);
+
 		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
 
 			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {
@@ -161,14 +155,6 @@ sub prodAnlageTagEmon{
 ###############tagesproduktion analge der letzten 3 monate 
 #datum, wert
 sub prodAnlageTag {
-
-	###zeitspanne ausrechnen
-#	my $datumBis = today();
-#	my $datumVon = $datumBis - 90;
-#TODO getMaxDatum for each anlage separate!!!
-	my $datumBis = Db::AeDb::getMaxDatum();
-#TODO use DateTime; !!!
-	my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);	
 	
 	my $sth = Db::AeDb::getAnlagen();	
 	while (my $resultAnlagen = $sth->fetchrow_hashref() ) {
@@ -180,6 +166,11 @@ sub prodAnlageTag {
 		
 		###header
 		print $fh "date,Tagesproduktion (kWh)\n";
+		
+#calc time slot for each anlage 		
+		my $datumBis = Db::AeDb::getMaxDatumAnlage($anlageId);
+		my $datumVon = Utili::Datum::subtractDateWithMonth($datumBis, 3);
+		
 		my $sthAnlage = Db::AeDb::getAnlageTagBArbeit($anlageId, $datumVon, $datumBis);
 
 			while (my $anlageResult = $sthAnlage->fetchrow_hashref() ) {

@@ -1,8 +1,6 @@
 #!/bin/bash
 # start script for AppEnergie profile "server" import emon daily
 
-#!!!! --migratedb
-
 cd /opt/appenergie/aedataproc/scr
 
 perl AEdataProc.pm \
