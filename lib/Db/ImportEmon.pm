@@ -35,13 +35,13 @@ sub tester {
 
 #	compareData();
 
-	importNotImported();
+	importEmon();
 	
 	
 }
 
 # imports all "feeds" into tbl "arbeit" 
-sub importNotImported {
+sub importEmon {
 
 	foreach my $anlage ( keys %feeds ) {
 
@@ -60,7 +60,7 @@ sub importNotImported {
 		my $importTill = DateTime->from_epoch( epoch => $datum );
 		$importTill->subtract(days => 1); # last full day
 
-$AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=$importFrom till=$importTill" );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=".$importFrom->strftime("%Y-%m-%d") . " till=".$importTill->strftime("%Y-%m-%d") );
 		while ($importFrom < $importTill) { 
 			my %newFields = (
 				anlageid	=> $an_id,
@@ -75,11 +75,14 @@ $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) f
 				my %updateFields = (
 					arbeitemon	=> $newFields{'arbeitemon'},
 				);
-				Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
-				$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\tid=$oldFields->{'id'}\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$updateFields{'arbeitemon'}" );
+				
+				if ( $oldFields->{'arbeitemon'} ne $updateFields{'arbeitemon'} ) {
+					Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
+					$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\t$newFields{'anlageid'} $newFields{'datum'} $updateFields{'arbeitemon'}" );					
+				}
 			} else { #row not exist > insert
 				Db::AeDb::insertHash('arbeit', %newFields);
-				$AEdataProc::log->logWrite( ( caller(0) )[3], "inserted\t\tanlage=$newFields{'anlageid'}\tdatum=$newFields{'datum'}\tarbeitemon=$newFields{'arbeitemon'}" );
+				$AEdataProc::log->logWrite( ( caller(0) )[3], "inserted\t$newFields{'anlageid'} $newFields{'datum'} $newFields{'arbeitemon'}" );
 			}
 			
 			$importFrom->add(days => 1);

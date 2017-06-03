@@ -318,7 +318,7 @@ sub importRaw {
 sub importEmon {
 
 		use Db::ImportEmon;
-		Db::ImportEmon::importNotImported();
+		Db::ImportEmon::importEmon();
 
 }
 
@@ -327,7 +327,7 @@ sub prodCsv {
 
 		use Prod::Csv;
 
-#TODO del file before write
+#TODO del file before write ???
 
 #csv tot / anlage
 		Prod::Csv::prodAnlageTot();
