@@ -11,6 +11,8 @@ use DBI;
 
 	my $dbh;
 
+#update arbeit SET arbeitemon = null
+
 sub tester {
 
 	return;
@@ -41,6 +43,7 @@ sub dbClose {
 
 }
 
+# epoch date = getMinTimeForFeed(feed tbl);
 sub getMinTimeForFeed {
 	my ($table) = @_;
 	my $sth = $dbh->prepare("SELECT min(time) as time FROM $table");

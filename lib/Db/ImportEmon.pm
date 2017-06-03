@@ -5,15 +5,8 @@
 # TODO arbeitemon inserted into tbl "arbeit", field "arbeitemon". > after test phase write into field "arbeit" 
 #
 
-#TODO check if emoncms time is gm/localtime???
-#TODO check with schaltjahr 29.2.2016 ???
-#TODO sub importFull ?????? for update values in emoncms db AND just in case something went wrong ????
+#TODO check if emoncms time is gm/localtime??? check with schaltjahr 29.2.2016 ???
 
-#TODO wie sollte das ablaufen?
-#cronjob täglich 
-#- daten aus emoncms auslesen (vom jüngsten datum an) und in sqlight schreiben
-#- csv erstellen und uploaden
-#cronjob monatlich: alle daten erstellen (als security)
 
 
 package Db::ImportEmon;
@@ -57,19 +50,16 @@ sub importNotImported {
 		my $an_anlage = $result->{'anlage'};
 		my $feed	 = $feeds{$anlage}{feed};
 		
-		my $importFrom;
-		my $datum = Db::AeDb::getMaxEmonDatumForAnlage($an_id); 		#getmax date in AeDb for id (2007-12-13)
-		if (! defined $datum) {
-			$datum = Db::EmonDb::getMinTimeForFeed($feed); #get min time from emondb (1468312359) >>> load all data
-			$importFrom = DateTime->from_epoch( epoch => $datum );
-		} else {
-			$importFrom = DateTime->new(year => substr($datum,0,4), month => substr($datum,5,2), day => substr($datum,8,2) );
-		}
+# from date		
+		my $datum = Db::EmonDb::getMinTimeForFeed($feed); #get min time from emondb (1468312359) >>> load all data
+		my $importFrom = DateTime->from_epoch( epoch => $datum );
 		$importFrom->add(days => 1); # next (full) day
-		
+
+#till date		
 		$datum = Db::EmonDb::getMaxTimeForFeed($feed);
 		my $importTill = DateTime->from_epoch( epoch => $datum );
 		$importTill->subtract(days => 1); # last full day
+
 $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=$importFrom till=$importTill" );
 		while ($importFrom < $importTill) { 
 			my %newFields = (
@@ -143,9 +133,9 @@ Utili::Dbgcmdt::prnwo($compareFrom);
 
 
 
-# gives back from feed the kwday for YYYYMMDD
+# kwday = getWorkPerDay(feed tbl, day as DateTime object)
 sub getWorkPerDay {
-	my ($feed, $dt) = @_; # feed-table, day as DateTime object
+	my ($feed, $dt) = @_;
 	
 	my $timeFrom = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>0,minute=>0,second=>0);
 	my $timeTill = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>23,minute=>59,second=>59);
@@ -177,6 +167,9 @@ sub getWorkPerDay {
 
 	$workSecSum += ((86400 - $secSum) * $dataLast ); # add for remaing sec 
 	my $workdaySum = $workSecSum / 3600; #why 3600 and not 86400????
+	
+#round to integer  	
+	$workdaySum = int($workdaySum + 0.5);
 
 	return ($workdaySum);
 
