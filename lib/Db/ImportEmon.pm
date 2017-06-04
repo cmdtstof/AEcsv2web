@@ -52,8 +52,9 @@ sub importEmon {
 		
 # from date		
 		my $datum = Db::EmonDb::getMinTimeForFeed($feed); #get min time from emondb (1468312359) >>> load all data
-		my $importFrom = DateTime->from_epoch( epoch => $datum );
-		$importFrom->add(days => 1); # next (full) day
+		my $d1 = DateTime->from_epoch( epoch => $datum );
+		$d1->add(days => 1); # next (full) day
+		my $importFrom = DateTime->new( year=> $d1->year(), month=> $d1->month(), day=> $d1->day() );
 
 #till date		
 		$datum = Db::EmonDb::getMaxTimeForFeed($feed);
@@ -61,22 +62,21 @@ sub importEmon {
 		$importTill->subtract(days => 1); # last full day
 
 $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=".$importFrom->strftime("%Y-%m-%d") . " till=".$importTill->strftime("%Y-%m-%d") );
-		while ($importFrom < $importTill) { 
+		while ($importFrom <= $importTill) { 
 			my %newFields = (
 				anlageid	=> $an_id,
 				datum		=> $importFrom->strftime("%Y-%m-%d"), #2017-05-19
 				arbeitemon	=> getWorkPerDay($feed, $importFrom),
 			);
-
-#$newFields{'datum'} = "2018-01-01"; #TODO for test, remove after!!! 	
+ 	
 			my $oldFields = Db::AeDb::getArbeitAsHash(%newFields); #$result(hashref(id, datum, anlageid, arbeit, arbeitemon)) = getArbeitAsHash($hash(anlageid, datum))
 			if ($oldFields) { #row exist > update
 #Utili::Dbgcmdt::dumper(\$oldFields);
-				my %updateFields = (
-					arbeitemon	=> $newFields{'arbeitemon'},
-				);
 				
-				if ( $oldFields->{'arbeitemon'} ne $updateFields{'arbeitemon'} ) {
+				if ( $oldFields->{'arbeitemon'} ne $newFields{'arbeitemon'} ) {
+					my %updateFields = (
+						arbeitemon	=> $newFields{'arbeitemon'},
+					);					
 					Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
 					$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\t$newFields{'anlageid'} $newFields{'datum'} $updateFields{'arbeitemon'}" );					
 				}
