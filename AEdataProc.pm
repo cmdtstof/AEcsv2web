@@ -28,8 +28,6 @@ create db, csv, tables for www from raw leistungsdata
 #
 use Utili::Dbgcmdt;
 use Getopt::Long;
-#use Data::Dumper;
-
 
 ##############################################################################
 # Define some constants / defaults
@@ -37,7 +35,7 @@ use Getopt::Long;
 our $log;
 our %config = (
 	app			=> "AEdataProc",
-	version		=> "0.4",
+	version		=> "0.5",
 	profile		=> "dev",  #local, server
 	
 	writeLog	=> 1,
@@ -76,7 +74,7 @@ my %doer = (
 	migrateDb		=> 0,	#1=migrate db
 	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db !!!!
 	importRaw		=> 0,	#1=import raw data into db
-	importEmon   	=> 0,  	#1=import from emoncms db
+	importEmon   	=> 1,  	#1=import from emoncms db
 	prodCsv			=> 0,	# 1=create csv files
 	prodTbl			=> 0,	# 1=produce tables
 	#prodCharts		=> 0,	# 1=produce charts
@@ -259,7 +257,8 @@ sub importRaw {
 sub importEmon {
 
 		use Db::ImportEmon;
-		Db::ImportEmon::importEmon();
+		Db::ImportEmon::tester();
+#		Db::ImportEmon::importEmon();
 
 }
 

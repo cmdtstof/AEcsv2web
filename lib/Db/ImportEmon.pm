@@ -15,6 +15,7 @@ use warnings;
 use strict;
 
 use DateTime;
+use Utili::Dbgcmdt;
 
 # aedb.anlage => emoncms.feed_id 
 my %feeds = (
@@ -29,17 +30,17 @@ my %feeds = (
 
 sub tester {
 
-#	feed19tester(); #works
-	
+Utili::Dbgcmdt::prnwo("tester");	
 	
 ### getworkperday >> works
-#	my $day = DateTime->new(year => 2016, month => 7, day => 28 );  
-#	my $work = getWorkPerDay("feed_19", $day);
-#Utili::Dbgcmdt::prnwo("$day $work");
+# kwday = getWorkPerDay(feed tbl, day as DateTime object)
+	my $day = DateTime->new(year => 2017, month => 6, day => 26 );  
+	my $work = getWorkPerDay("feed_54", $day);
+Utili::Dbgcmdt::prnwo("$day $work");
 
 #	compareData();
 
-	importEmon();
+#	importEmon();
 	
 	
 }
@@ -146,7 +147,7 @@ sub getWorkPerDay {
 	
 	my $timeFrom = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>0,minute=>0,second=>0);
 	my $timeTill = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>23,minute=>59,second=>59);
-#Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
+Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
 
 	my $workSecSum = 0; #kWsec 
 	my $secSum = 0;
@@ -154,7 +155,7 @@ sub getWorkPerDay {
 	my $dataLast = 0;
 	
 	my $querystr = "select * from $feed where time >= ". $timeFrom->epoch() . " AND time <= " . $timeTill->epoch() . ";";
-#Utili::Dbgcmdt::prnwo($querystr);
+Utili::Dbgcmdt::prnwo($querystr);
 	
 	my $sth = Db::EmonDb::getQuerystrSth($querystr);	
 	while (my $result = $sth->fetchrow_hashref() ) {
@@ -169,6 +170,7 @@ sub getWorkPerDay {
 		$secSum += $timeDif; 
 		$timeLast = $timeNow;
 		$dataLast = $dataNow;
+Utili::Dbgcmdt::prnwo("time=$timeNow sec=$timeDif work=$dataAvg");		
 	
 	}
 
