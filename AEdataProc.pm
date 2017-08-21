@@ -38,14 +38,14 @@ our $log;
 our %config = (
 	app			=> "AEdataProc",
 	version		=> "0.4",
-	profile		=> "dev",  
-#	profile		=> "local", 
-#	profile		=> "server", 
+	profile		=> "dev",  #local, server
 	
 	writeLog	=> 1,
 	logFile		=> "../log/logfile.csv",
 	verbose		=> 1, #output also to stderr
 	logAppend	=> 0, #1=append log
+	
+	cfgFile	=> "cfg_",
 
 	fileDbScvAnlagen	=> "ae_anlagen_db_import.csv",
 	fileDbCsvArbeit		=> "ae_arbeit_db_import_", #ae_arbeit_db_import_furth.csv
@@ -70,7 +70,7 @@ our %config = (
 #what do do in dev (default) profile mode
 
 my %doer = (
-	setupDb			=> 0,	#1 if db is used
+	setupDb			=> 1,	#1 if db is used
 	testing			=> 0,	#1=do some testing
 	createDb 		=> 0,   #1=create db
 	migrateDb		=> 0,	#1=migrate db
@@ -170,73 +170,14 @@ sub getOptions{
 # get profile data
 
 sub getProfile{
+	my $cfgFilename = $config{cfgFile} . $config{profile} . ".pl";
+	my $cfg = do($cfgFilename);
+	die "Error parsing config file: $@" if $@;
+	die "Error reading config file: $!" unless defined $cfg;
 
+	%config = (%config, %$cfg);
+#Utili::Dbgcmdt::dumper(\%config);	
 
-if ($config{profile} eq "local") {
-# codebase (ie): /data/prod/appenergie/aedataproc/scr/
-	$config{outputDir}		= "/data/bodies/appenergie/website/www_new/data/";
-	$config{wwwDataDir}		= 'root@vps288538.ovh.net:/var/www/appenergie/data';
-	$config{dbImportDumps}	= "../data/dumps/";
-	$config{rawDataDir}		= "../data/raw/";
-	
-	$config{dbAeType}		= "sqlite";
-	$config{dbAeHost}		= "";
-	$config{dbAePort}		= "";
-	$config{dbAeName}		= "../data/db/sqlite/appenergie.db";
-	$config{dbAeUser}		= "";
-	$config{dbAePwd}		= "";
-	
-
-
-#dev	
-} elsif ($config{profile} eq "dev") {
-
-	$config{outputDir}   	= "../datatest/output/";
-	$config{wwwDataDir}		= "../datatest/www";
-	$config{dbImportDumps}	= "../datatest/dumps/";
-	$config{rawDataDir}		= "../datatest/raw/";
-	
-	$config{dbAeType}		= "sqlite"; #Aedb
-	$config{dbAeHost}		= "";
-	$config{dbAePort}		= "";
-	$config{dbAeName}		= "../datatest/db/test.db";
-	$config{dbAeUser}		= "";
-	$config{dbAePwd}		= "";
-	
-	$config{dbEmType}		= "mysql"; #emoncms
-	$config{dbEmHost}		= "emoncms"; #emoncms.rosslan.home
-	$config{dbEmPort}		= "3306";
-	$config{dbEmName}		= "emoncms";
-	$config{dbEmUser}		= "emoncms";
-	$config{dbEmPwd}		= "emoncms";
-
-#server
-} elsif ($config{profile} eq "server") {
-# codebase (ie): /opt/appenergie/aedataproc/scr/
-# run: /opt/appenergie/aedataproc/scr/bin/*.sh
-
-	$config{outputDir}   	= "../data/output/";
-	$config{wwwDataDir}		= "/var/www/appenergie/data";	
-	$config{dbType}			=	"mysql";
-	$config{rawDataDir}		= "../data/raw/";
-
-	$config{dbAeType}		= "sqlite"; #Aedb
-	$config{dbAeHost}		= "";
-	$config{dbAePort}		= "";
-	$config{dbAeName}		= "../data/db/sqlite/appenergie.db";
-	$config{dbAeUser}		= "";
-	$config{dbAePwd}		= "";
-
-	$config{dbEmType}		= "mysql"; #emoncms
-	$config{dbEmHost}		= "localhost";
-	$config{dbEmPort}		= "3306";
-	$config{dbEmName}		= "emoncms";
-	$config{dbEmUser}		= "emon";
-	$config{dbEmPwd}		= "uOcl3UchAJI8NEZKQBZg";
-	
-} else {  #else error!
-	die("Error wrong profile\n");
-}
 	return;
 }
 

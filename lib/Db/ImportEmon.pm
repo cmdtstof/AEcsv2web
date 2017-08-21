@@ -16,9 +16,13 @@ use strict;
 
 use DateTime;
 
+# aedb.anlage => emoncms.feed_id 
 my %feeds = (
 	furth => {
-		feed      => "feed_19",
+		feed    => "feed_19",
+    },
+    chuerstein => {
+    	feed	=> "feed_54",
     },
  );
 
