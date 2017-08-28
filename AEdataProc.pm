@@ -28,8 +28,6 @@ create db, csv, tables for www from raw leistungsdata
 #
 use Utili::Dbgcmdt;
 use Getopt::Long;
-#use Data::Dumper;
-
 
 ##############################################################################
 # Define some constants / defaults
@@ -37,7 +35,7 @@ use Getopt::Long;
 our $log;
 our %config = (
 	app			=> "AEdataProc",
-	version		=> "0.4",
+	version		=> "0.5",
 	profile		=> "dev",  #local, server
 	
 	writeLog	=> 1,
@@ -63,6 +61,12 @@ our %config = (
 	emptyValue		=> "&nbsp;",		# empty values will be filled with this
 
 
+	# aedb.anlage => emoncms.feed_id, live:0=pilot, 1=live
+	emonfeeds => {
+		furth 		=> {feed => "feed_19", live => 0},
+		chuerstein	=> {feed => "feed_54", live => 0}
+	},
+
 );
 
 
@@ -70,7 +74,7 @@ our %config = (
 #what do do in dev (default) profile mode
 
 my %doer = (
-	setupDb			=> 1,	#1 if db is used
+	setupDb			=> 0,	#1 if db is used
 	testing			=> 0,	#1=do some testing
 	createDb 		=> 0,   #1=create db
 	migrateDb		=> 0,	#1=migrate db
@@ -199,7 +203,9 @@ sub tester{
 	$log->logWrite($config{app}, "testing...");	
 	
 #Utili::Dbgcmdt::dumper(\%config);	
-Utili::Dbgcmdt::dumper(\%doer);
+#Utili::Dbgcmdt::dumper(\%doer);
+
+		Db::ImportEmon::tester();
 
 
 #	die;
