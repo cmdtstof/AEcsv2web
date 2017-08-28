@@ -61,6 +61,12 @@ our %config = (
 	emptyValue		=> "&nbsp;",		# empty values will be filled with this
 
 
+	# aedb.anlage => emoncms.feed_id, live:0=pilot, 1=live
+	emonfeeds => {
+		furth 		=> {feed => "feed_19", live => 0},
+		chuerstein	=> {feed => "feed_54", live => 0}
+	},
+
 );
 
 
@@ -68,13 +74,13 @@ our %config = (
 #what do do in dev (default) profile mode
 
 my %doer = (
-	setupDb			=> 1,	#1 if db is used
+	setupDb			=> 0,	#1 if db is used
 	testing			=> 0,	#1=do some testing
 	createDb 		=> 0,   #1=create db
 	migrateDb		=> 0,	#1=migrate db
 	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db !!!!
 	importRaw		=> 0,	#1=import raw data into db
-	importEmon   	=> 1,  	#1=import from emoncms db
+	importEmon   	=> 0,  	#1=import from emoncms db
 	prodCsv			=> 0,	# 1=create csv files
 	prodTbl			=> 0,	# 1=produce tables
 	#prodCharts		=> 0,	# 1=produce charts
@@ -197,7 +203,9 @@ sub tester{
 	$log->logWrite($config{app}, "testing...");	
 	
 #Utili::Dbgcmdt::dumper(\%config);	
-Utili::Dbgcmdt::dumper(\%doer);
+#Utili::Dbgcmdt::dumper(\%doer);
+
+		Db::ImportEmon::tester();
 
 
 #	die;
@@ -257,8 +265,7 @@ sub importRaw {
 sub importEmon {
 
 		use Db::ImportEmon;
-		Db::ImportEmon::tester();
-#		Db::ImportEmon::importEmon();
+		Db::ImportEmon::importEmon();
 
 }
 

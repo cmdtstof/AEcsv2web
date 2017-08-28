@@ -2,12 +2,7 @@
 # import data from emoncms power/kraft (kW) feed and produce work/arbeit (kwday) for adding in AeDb
 
 
-# TODO arbeitemon inserted into tbl "arbeit", field "arbeitemon". > after test phase write into field "arbeit" 
-#
-
 #TODO check if emoncms time is gm/localtime??? check with schaltjahr 29.2.2016 ???
-
-
 
 package Db::ImportEmon;
 
@@ -17,30 +12,38 @@ use strict;
 use DateTime;
 use Utili::Dbgcmdt;
 
-# aedb.anlage => emoncms.feed_id 
-my %feeds = (
-	furth => {
-		feed    => "feed_19",
-    },
-    chuerstein => {
-    	feed	=> "feed_54",
-    },
- );
 
 
 sub tester {
 
 Utili::Dbgcmdt::prnwo("tester");	
+
+#Utili::Dbgcmdt::dumper(%feeds);
+
 	
-### getworkperday >> works
-# kwday = getWorkPerDay(feed tbl, day as DateTime object)
-	my $day = DateTime->new(year => 2017, month => 6, day => 26 );  
-	my $work = getWorkPerDay("feed_54", $day);
-Utili::Dbgcmdt::prnwo("$day $work");
+#### getworkperday >> works
+## kwday = getWorkPerDay(feed tbl, day as DateTime object)
+#	my $day = DateTime->new(year => 2017, month => 6, day => 26 );  
+#	my $work = getWorkPerDay("feed_54", $day);
+#Utili::Dbgcmdt::prnwo("$day $work");
 
 #	compareData();
 
 #	importEmon();
+
+Utili::Dbgcmdt::dumper($AEdataProc::config{emonfeeds});
+
+	my %feeds = %{$AEdataProc::config{emonfeeds}};
+	
+Utili::Dbgcmdt::dumper(%feeds);	
+
+	foreach my $anlage ( keys  %feeds) {
+
+		my $feed	 = $feeds{$anlage}{feed};
+		my $live	 = $feeds{$anlage}{live};
+		Utili::Dbgcmdt::prnwo("$feed = $live");		
+		
+	}
 	
 	
 }
@@ -48,12 +51,14 @@ Utili::Dbgcmdt::prnwo("$day $work");
 # imports all "feeds" into tbl "arbeit" 
 sub importEmon {
 
+	my %feeds = %{$AEdataProc::config{emonfeeds}};
 	foreach my $anlage ( keys %feeds ) {
 
 		my $result	 = Db::AeDb::getAnlage($anlage);
 		my $an_id	 = $result->{'id'};
 		my $an_anlage = $result->{'anlage'};
 		my $feed	 = $feeds{$anlage}{feed};
+		my $live	= $feeds{$anlage}{live};
 		
 # from date		
 		my $datum = Db::EmonDb::getMinTimeForFeed($feed); #get min time from emondb (1468312359) >>> load all data
@@ -76,16 +81,25 @@ $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) f
  	
 			my $oldFields = Db::AeDb::getArbeitAsHash(%newFields); #$result(hashref(id, datum, anlageid, arbeit, arbeitemon)) = getArbeitAsHash($hash(anlageid, datum))
 			if ($oldFields) { #row exist > update
-#Utili::Dbgcmdt::dumper(\$oldFields);
-				
-				if ( $oldFields->{'arbeitemon'} ne $newFields{'arbeitemon'} ) {
-					my %updateFields = (
-						arbeitemon	=> $newFields{'arbeitemon'},
-					);					
-					Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
-					$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\t$newFields{'anlageid'} $newFields{'datum'} $updateFields{'arbeitemon'}" );					
+				my %updateFields;
+				if ($live) {
+					if ( !exists $oldFields->{'arbeit'} or ($oldFields->{'arbeit'} ne $newFields{'arbeitemon'}) ) {
+						$updateFields{'arbeit'} = $newFields{'arbeitemon'};
+					}
+				} else {
+ 					if ( !exists $oldFields->{'arbeitemon'} or ($oldFields->{'arbeitemon'} ne $newFields{'arbeitemon'}) ) {
+						$updateFields{'arbeitemon'} = $newFields{'arbeitemon'};
+					}					
 				}
+				if (%updateFields) {
+					Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
+					$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\t$newFields{'anlageid'} $newFields{'datum'} $newFields{'arbeitemon'}" );
+				}
+
 			} else { #row not exist > insert
+				if ($live) {
+					$newFields{'arbeit'} = $newFields{'arbeitemon'};
+				}
 				Db::AeDb::insertHash('arbeit', %newFields);
 				$AEdataProc::log->logWrite( ( caller(0) )[3], "inserted\t$newFields{'anlageid'} $newFields{'datum'} $newFields{'arbeitemon'}" );
 			}
@@ -147,7 +161,7 @@ sub getWorkPerDay {
 	
 	my $timeFrom = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>0,minute=>0,second=>0);
 	my $timeTill = DateTime->new(year=>$dt->year(),month=>$dt->month(),day=>$dt->day(),hour=>23,minute=>59,second=>59);
-Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
+#Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
 
 	my $workSecSum = 0; #kWsec 
 	my $secSum = 0;
@@ -155,7 +169,7 @@ Utili::Dbgcmdt::prnwo("from=$timeFrom till=$timeTill");
 	my $dataLast = 0;
 	
 	my $querystr = "select * from $feed where time >= ". $timeFrom->epoch() . " AND time <= " . $timeTill->epoch() . ";";
-Utili::Dbgcmdt::prnwo($querystr);
+#Utili::Dbgcmdt::prnwo($querystr);
 	
 	my $sth = Db::EmonDb::getQuerystrSth($querystr);	
 	while (my $result = $sth->fetchrow_hashref() ) {
@@ -170,7 +184,7 @@ Utili::Dbgcmdt::prnwo($querystr);
 		$secSum += $timeDif; 
 		$timeLast = $timeNow;
 		$dataLast = $dataNow;
-Utili::Dbgcmdt::prnwo("time=$timeNow sec=$timeDif work=$dataAvg");		
+#Utili::Dbgcmdt::prnwo("time=$timeNow sec=$timeDif work=$dataAvg");		
 	
 	}
 
