@@ -1,5 +1,4 @@
 .git
 .includepath
 .project
-cfg_local.pl
-cfg_server.pl
+cfg/cfg_profile_server.pl

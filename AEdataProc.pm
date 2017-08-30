@@ -53,34 +53,11 @@ use Getopt::Long;
 #
 our $log;
 our %config = (
-	app			=> "AEdataProc",
-	version		=> "0.5",
-	profile		=> "dev",  #local, server
-	
-	writeLog	=> 1,
-	logFile		=> "../log/logfile.csv",
-	verbose		=> 1, #output also to stderr
-	logAppend	=> 0, #1=append log
-	
-	cfgFile	=> "cfg_",
-
-	fileDbScvAnlagen	=> "ae_anlagen_db_import.csv",
-	fileDbCsvArbeit		=> "ae_arbeit_db_import_", #ae_arbeit_db_import_furth.csv
-	fileRawArbeit		=> "ae_raw_",
-	fileGesamt 			=> "dataGesamt_",    #dataGesamt_2015.csv > dataGesamt_2015.html
-	fileGesamtTotal		=> "dataGesamtTotal",	#gesamtproduktion aller analgen pro jahr
-	fileAnlageJahr 		=> "dataJahr_",	#Jahresproduktion_furth.csv
-	fileAnlageMonat		=> "dataMonat_",
-	fileAnlageTag		=> "dataTag_",
-	fileAnlageTagEmon	=> "dataTagEmon_", # for arbeitemon compare test phase
-	fileAnlageTagDiff	=> "dataTagDiff_", #data/dataTagDiff_furth.csv
-	fileAnlageTot		=> "dataTot_",
-
-	sep_char			=> ";",
-	emptyValue		=> "&nbsp;",		# empty values will be filled with this
-
+	profile		=> "dev",  #default
+	cfgDir		=> "cfg/",
+	cfgApp		=> "cfg_app.pl", # general app config
+	cfgProfile	=> "cfg_profile_",	#configs for choosen profile
 );
-
 
 ##############################################################################
 #what to do in dev (default) profile mode
@@ -88,9 +65,9 @@ our %config = (
 my %doer = (
 	setupDb			=> 0,	#1 if db is used
 	testing			=> 0,	#1=do some testing
-	createDb 		=> 0,   #1=create db
+	createDb 		=> 0,   #1=create db (be careful!)
 	migrateDb		=> 0,	#1=migrate db
-	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db !!!!
+	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db before!!!!
 	importRaw		=> 0,	#1=import raw data into db
 	importEmon   	=> 0,  	#1=import from emoncms db
 	prodCsv			=> 0,	# 1=create csv files
@@ -129,23 +106,11 @@ if ($doer{writeQsError}) { writeQsError(); }
 
 
 ##############################################################################
-#not used!
-sub new{
-	my $class = shift;
-	my $self = {};
-	bless $self, $class;
-	$self->{config}	= \%config;
-	$self->{doer}	= \%doer;
-#	$self->{dba}	= {};
-	return $self;
-}
-
-##############################################################################
 # get options
 
 =head2 OPTIONS
 
- [--profile <name>] = default = "dev", will be read cfg_dev.pl in root
+ [--profile <name>] = default = "dev". cfg_profile_dev.pl will overwrite cfg_app.pl
  [--createdb]       = creates new db (something like "MVC")
  [--setupDb]        = starts databases
  [--verbose]        = shows comments on STDOUT
@@ -184,13 +149,20 @@ sub getOptions{
 # get profile data
 
 sub getProfile{
-	my $cfgFilename = $config{cfgFile} . $config{profile} . ".pl";
+
+	#app config
+	my $cfgFilename = $config{cfgDir}. $config{cfgApp};
 	my $cfg = do($cfgFilename);
 	die "Error parsing config file: $@" if $@;
 	die "Error reading config file: $!" unless defined $cfg;
-
 	%config = (%config, %$cfg);
-#Utili::Dbgcmdt::dumper(\%config);	
+
+	#profile config
+	$cfgFilename = $config{cfgDir}. $config{cfgProfile} . $config{profile} . ".pl";
+	$cfg = do($cfgFilename);
+	die "Error parsing config file: $@" if $@;
+	die "Error reading config file: $!" unless defined $cfg;
+	%config = (%config, %$cfg);
 
 	return;
 }
