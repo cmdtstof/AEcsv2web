@@ -1,7 +1,7 @@
 #!/bin/bash
 
 perl AEdataProc.pm \
---profile dev \
+--profile devdocker \
 --setupdb \
 --importemon \
 --csv \

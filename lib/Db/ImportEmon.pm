@@ -2,7 +2,7 @@
 # import data from emoncms power/kraft (kW) feed and produce work/arbeit (kwday) for adding in AeDb
 
 
-#TODO check if emoncms time is gm/localtime??? check with schaltjahr 29.2.2016 ???
+#TODO check if emoncms time is gm/localtime? >>> is UTC+0 !!!?? check with schaltjahr 29.2.2016 ?>>> ok!!!
 
 package Db::ImportEmon;
 
@@ -22,10 +22,10 @@ Utili::Dbgcmdt::prnwo("tester");
 
 	
 #### getworkperday >> works
-## kwday = getWorkPerDay(feed tbl, day as DateTime object)
-#	my $day = DateTime->new(year => 2017, month => 6, day => 26 );  
-#	my $work = getWorkPerDay("feed_54", $day);
-#Utili::Dbgcmdt::prnwo("$day $work");
+# kwday = getWorkPerDay(feed tbl, day as DateTime object)
+	my $day = DateTime->new(year => 2017, month => 8, day => 27 );  
+	my $work = getWorkPerDay("feed_19", $day);
+Utili::Dbgcmdt::prnwo("$day $work");
 
 #	compareData();
 
@@ -71,7 +71,7 @@ sub importEmon {
 		my $importTill = DateTime->from_epoch( epoch => $datum );
 		$importTill->subtract(days => 1); # last full day
 
-$AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) from=".$importFrom->strftime("%Y-%m-%d") . " till=".$importTill->strftime("%Y-%m-%d") );
+$AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed live=$live) from=".$importFrom->strftime("%Y-%m-%d") . " till=".$importTill->strftime("%Y-%m-%d") );
 		while ($importFrom <= $importTill) { 
 			my %newFields = (
 				anlageid	=> $an_id,
@@ -83,14 +83,12 @@ $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) f
 			if ($oldFields) { #row exist > update
 				my %updateFields;
 				if ($live) {
-					if ( !exists $oldFields->{'arbeit'} or ($oldFields->{'arbeit'} ne $newFields{'arbeitemon'}) ) {
-						$updateFields{'arbeit'} = $newFields{'arbeitemon'};
-					}
+					# aedb.arbeitemon will not be updatet!!!
+					%updateFields = ( %updateFields, updateNeeded($oldFields->{'arbeit'}, $newFields{'arbeitemon'}, "arbeit") );
 				} else {
- 					if ( !exists $oldFields->{'arbeitemon'} or ($oldFields->{'arbeitemon'} ne $newFields{'arbeitemon'}) ) {
-						$updateFields{'arbeitemon'} = $newFields{'arbeitemon'};
-					}					
-				}
+					%updateFields = (%updateFields, updateNeeded($oldFields->{'arbeitemon'}, $newFields{'arbeitemon'}, "arbeitemon") ); 
+				} #live
+
 				if (%updateFields) {
 					Db::AeDb::updateArbeit($oldFields->{'id'}, %updateFields);
 					$AEdataProc::log->logWrite( ( caller(0) )[3], "updated\t$newFields{'anlageid'} $newFields{'datum'} $newFields{'arbeitemon'}" );
@@ -108,6 +106,19 @@ $AEdataProc::log->logWrite( ( caller(0) )[3], "$an_anlage ($an_id, feed=$feed) f
 		}
 	} #foreach anlage
 	return;
+}
+
+sub updateNeeded {
+	my ($old, $new, $update) = @_;
+	my %upFields;
+	if (!defined $old) {
+		$upFields{$update} = $new;
+	} else {
+		if ($old ne $new) {
+			$upFields{$update} = $new;
+		}
+	}
+	return %upFields;
 }
 
 

@@ -2,3 +2,7 @@
 .includepath
 .project
 cfg/cfg_profile_server.pl
+data/*
+!data/db/.keepit
+log/*
+!log/.keepit
