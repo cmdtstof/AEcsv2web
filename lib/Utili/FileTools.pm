@@ -15,6 +15,20 @@ some file utilities
 
 =over
 
+
+=item nil = delFiles($searchDir, $filePattern)
+  $searchDir = "./" ...
+=cut
+sub delFiles{
+	my ($searchDir, $filePattern) = @_;
+	my @files = getFileListFromPattern($searchDir, $filePattern);
+	unlink @files;
+	return;
+
+}
+
+
+
 =item @files = getFileListFromPattern($searchDir, $filePattern)
 =cut
 sub getFileListFromPattern {

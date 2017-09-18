@@ -1,6 +1,6 @@
 {
 	app			=> "AEdataProc",
-	version		=> "0.6",
+	version		=> "0.7",
 
 	fileDbScvAnlagen	=> "ae_anlagen_db_import.csv",
 	fileDbCsvArbeit		=> "ae_arbeit_db_import_", #ae_arbeit_db_import_furth.csv

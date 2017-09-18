@@ -30,6 +30,14 @@ my $monateTot = @monateDe;
 	my $value;
 
 
+###############delete all csv files in outputDir
+sub delFiles{
+	Utili::FileTools::delFiles($AEdataProc::config{outputDir}, "*.csv");
+	$AEdataProc::log->logWrite((caller(0))[3], "csv deleted\t". $AEdataProc::config{outputDir}. "*.csv");	
+	return;
+}
+
+
 ###############tagesproduktion analge total 
 #datum, wert
  
@@ -271,7 +279,6 @@ sub prodGesamtJahr {
 	return;
 	
 }
-
 
 
 #jahresproduktion anlage

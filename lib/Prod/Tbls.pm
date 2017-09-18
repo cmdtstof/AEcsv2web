@@ -8,6 +8,14 @@ use Utili::FileTools;
 use Utili::Timi;
 
 
+###############delete all csv files in outputDir
+sub delFiles{
+	Utili::FileTools::delFiles($AEdataProc::config{outputDir}, "*.html");
+	$AEdataProc::log->logWrite((caller(0))[3], "csv deleted\t". $AEdataProc::config{outputDir}. "*.html");	
+	return;
+}
+
+
 sub prodGesamtTbl {
 
 	my $filePattern		= $AEdataProc::config{fileGesamt} . "????.csv";

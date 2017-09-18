@@ -31,7 +31,7 @@
 
 ## OPTIONS
 
-    [--profile <name>] = default = "dev", will be read cfg_dev.pl in root
+    [--profile <name>] = default = "dev". cfg_profile_dev.pl will overwrite cfg_app.pl
     [--createdb]       = creates new db (something like "MVC")
     [--setupDb]        = starts databases
     [--verbose]        = shows comments on STDOUT
@@ -45,9 +45,31 @@
     [--upload]         = uploads data to server dir
     [--wrtqserr]       = prints log "QS ERROR" to STDOUT
 
+## PROCESSING INFO
+
+    data will be handled according to config settings and option settings.
+
+### --importemon
+
+    - emonCMS data will be imported, according to "live" setting either to "arbeit" (live=1) or "arbeitemon" (live=0).
+    - there is always a full import of emoncms data > changes will update AeDB.
+
+### --importraw
+
+    - raw data will be imported from csv files and written to AeDB.
+    - there is always a full import of raw data > changes will update AeDB.
+
+### import processing order
+
+    manual changes of data can be done either in raw or emoncms,
+    but must take note of the processing order:
+    1. --importemon
+    2. --importraw
+    means, importraw overwrites importemon!
+
 ## COPYRIGHT
 
-Copyright 2017 cmdt.ch [http://cmdt.ch/](http://cmdt.ch/). All rights reserved.
+2017 cmdt.ch [http://cmdt.ch/](http://cmdt.ch/)
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.

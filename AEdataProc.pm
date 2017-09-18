@@ -68,8 +68,8 @@ my %doer = (
 	createDb 		=> 0,   #1=create db (be careful!)
 	migrateDb		=> 0,	#1=migrate db
 	importDumps		=> 0,	#1=import db dumps from csv (1.version) >>> create db before!!!!
-	importRaw		=> 0,	#1=import raw data into db
 	importEmon   	=> 0,  	#1=import from emoncms db
+	importRaw		=> 0,	#1=import raw data into db	
 	prodCsv			=> 0,	# 1=create csv files
 	prodTbl			=> 0,	# 1=produce tables
 	#prodCharts		=> 0,	# 1=produce charts
@@ -93,8 +93,8 @@ if ($doer{testing}) { tester(); }
 if ($doer{createDb}) { createDb(); }
 if ($doer{migrateDb}) { migrateDb(); }
 if ($doer{importDumps}) { importDumps(); }
-if ($doer{importRaw}) { importRaw(); }
 if ($doer{importEmon}) { importEmon(); }
+if ($doer{importRaw}) { importRaw(); }
 if ($doer{prodCsv}) { prodCsv(); }
 if ($doer{prodTbl}) { prodTbl(); }
 if ($doer{uploadFiles}) { uploadFiles(); }
@@ -125,6 +125,32 @@ if ($doer{writeQsError}) { writeQsError(); }
  [--wrtqserr]       = prints log "QS ERROR" to STDOUT
 =cut
 
+=head2 PROCESSING INFO
+
+  data will be handled according to config settings and option settings.
+
+=head3 --importemon
+
+  - emonCMS data will be imported, according to "live" setting either to "arbeit" (live=1) or "arbeitemon" (live=0).
+  - there is always a full import of emoncms data > changes will update AeDB.
+
+=head3 --importraw
+
+  - raw data will be imported from csv files and written to AeDB.
+  - there is always a full import of raw data > changes will update AeDB.
+
+=head3 import processing order
+
+  manual changes of data can be done either in raw or emoncms,
+  but must take note of the processing order:
+  1. --importemon
+  2. --importraw
+  means, importraw overwrites importemon!
+
+=cut
+
+
+
 sub getOptions{
 	GetOptions (
 		"profile|p=s"	=> \$config{profile}, 
@@ -143,7 +169,6 @@ sub getOptions{
 	);
 	return;
 }
-
 
 ##############################################################################
 # get profile data
@@ -194,6 +219,9 @@ sub tester{
 
 	return;
 }
+
+
+
 
 ################### setup db ##################
 sub setupDb{
@@ -256,7 +284,7 @@ sub prodCsv {
 
 		use Prod::Csv;
 
-#TODO del file before write ???
+		Prod::Csv::delFiles();  # del files before generating
 
 #csv tot / anlage
 		Prod::Csv::prodAnlageTot();
@@ -282,6 +310,7 @@ sub prodCsv {
 sub prodTbl {
 
 		use Prod::Tbls;
+		Prod::Tbls::delFiles(); # del files before generating
 		Prod::Tbls::prodGesamtTbl(); #html tbl gesamtproduktion from csv!!!
 #TODO generate html tbl from db
 
@@ -336,7 +365,7 @@ sub writeQsError {
 
 =head2 COPYRIGHT
 
-Copyright 2017 cmdt.ch L<http://cmdt.ch/>. All rights reserved.
+2017 cmdt.ch L<http://cmdt.ch/>
 
 This library is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
