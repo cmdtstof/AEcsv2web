@@ -21,6 +21,7 @@
 	emonfeeds => {
 		furth 		=> {feed => "feed_19", live => 1},
 		chuerstein	=> {feed => "feed_54", live => 1},
+		bbzherisau	=> {feed => "feed_73", live => 0},
 	},	
 	
 }
